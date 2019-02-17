@@ -1,0 +1,6 @@
+[package]
+name = "cr7"
+version = "0.1.0"
+authors = ["Bernardo Lins <bernardolins28@gmail.com>"]
+
+[dependencies]
