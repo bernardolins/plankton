@@ -31,6 +31,7 @@ fn main() {
                             .help("The spec file path")
                             .short("s")
                             .long("spec")
+                            .takes_value(true)
                         )
                 )
                 .subcommand(
