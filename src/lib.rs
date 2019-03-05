@@ -7,12 +7,42 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct Root {
+    #[serde(default = "Root::default_path")]
+    pub path: String,
+
+    #[serde(default = "Root::default_readonly")]
+    pub readonly: bool,
+}
+
+impl Root {
+    fn new() -> Root {
+        Root {
+            path: Root::default_path(),
+            readonly: Root::default_readonly(),
+        }
+    }
+
+    fn default_path() -> String {
+        "rootpath".to_string()
+    }
+
+    fn default_readonly() -> bool {
+        true
+    }
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Spec {
     #[serde(default = "Spec::default_oci_version")]
     pub oci_version: String,
 
     #[serde(default = "Spec::default_hostname")]
     pub hostname: String,
+
+    #[serde(default = "Root::new")]
+    pub root: Root,
 }
 
 impl Spec {
@@ -78,6 +108,8 @@ mod tests {
 
         assert_eq!(spec.oci_version, Spec::default_oci_version());
         assert_eq!(spec.hostname, Spec::default_hostname());
+        assert_eq!(spec.root.path, Root::default_path());
+        assert_eq!(spec.root.readonly, Root::default_readonly());
 
         std::fs::remove_file(path).unwrap();
     }
