@@ -7,6 +7,41 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct Process {
+    #[serde(default = "Process::default_terminal")]
+    pub terminal: bool,
+
+    #[serde(default = "Process::default_args")]
+    pub args: Vec<String>,
+
+    #[serde(default = "Process::default_env")]
+    pub env: Vec<String>,
+}
+
+impl Process {
+    fn new() -> Process {
+        Process {
+            terminal: Process::default_terminal(),
+            args: Process::default_args(),
+            env: Process::default_env(),
+        }
+    }
+
+    fn default_terminal() -> bool {
+        true
+    }
+
+    fn default_args() -> Vec<String> {
+        vec!("sh".to_string())
+    }
+
+    fn default_env() -> Vec<String> {
+        Vec::new()
+    }
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Root {
     #[serde(default = "Root::default_path")]
     pub path: String,
@@ -43,6 +78,9 @@ pub struct Spec {
 
     #[serde(default = "Root::new")]
     pub root: Root,
+
+    #[serde(default = "Process::new")]
+    pub process: Process,
 }
 
 impl Spec {
@@ -110,6 +148,9 @@ mod tests {
         assert_eq!(spec.hostname, Spec::default_hostname());
         assert_eq!(spec.root.path, Root::default_path());
         assert_eq!(spec.root.readonly, Root::default_readonly());
+        assert_eq!(spec.process.terminal, Process::default_terminal());
+        assert_eq!(spec.process.args, Process::default_args());
+        assert_eq!(spec.process.env, Process::default_env());
 
         std::fs::remove_file(path).unwrap();
     }
