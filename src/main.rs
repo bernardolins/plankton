@@ -35,7 +35,7 @@ fn main() {
                 )
                 .subcommand(
                     SubCommand::with_name("delete")
-                        .about("Delestes a running container")
+                        .about("Deletes a running container")
                 );
 
     let matches = app.get_matches();
