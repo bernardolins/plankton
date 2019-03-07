@@ -1,8 +1,9 @@
 extern crate clap;
-extern crate cr7;
+extern crate serde;
+
+pub mod oci_spec;
 
 use clap::{Arg, App, SubCommand};
-use cr7::Spec;
 
 const VERSION: &str = "0.0.1";
 const APP_NAME: &str = "cr7";
@@ -43,7 +44,7 @@ fn main() {
 
     if let Some(matches) = matches.subcommand_matches("run") {
         let spec_path = matches.value_of("spec").unwrap_or("config.json");
-        match Spec::from_json(spec_path) {
+        match oci_spec::OCISpec::from_json(spec_path) {
             Ok(spec) => {
                 println!("{:?}", spec);
             }
