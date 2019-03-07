@@ -1,0 +1,22 @@
+name: cr7
+about: Simple container runtime written in rust
+args:
+    - version:
+        short: v
+        long: version
+        help: Prints the application version
+        takes_value: false
+subcommands:
+    - run:
+        about: Creates a new container using a spec file
+        args:
+            - container-id:
+                index: 1
+                required: true
+                help: The id of the new container
+            - spec:
+                required: false
+                short: s
+                long: spec
+                takes_value: true
+
