@@ -66,7 +66,7 @@ mod tests {
     }
 
     #[test]
-    fn from_json_creates_a_spec_with_default_oci_version() {
+    fn from_json_creates_a_spec_with_default_values() {
         let mut dir = env::temp_dir();
         dir.push("defaults.json");
 

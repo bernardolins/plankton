@@ -48,3 +48,23 @@ impl Root {
     fn default_path() -> String { "rootpath".to_string() }
     fn default_readonly() -> bool { true }
 }
+
+#[cfg(test)]
+mod tests {
+    use oci::spec::{Process, Root};
+
+    #[test]
+    fn process_default() {
+        let process = Process::default();
+        assert_eq!(process.terminal, Process::default_terminal());
+        assert_eq!(process.args, Process::default_args());
+        assert_eq!(process.env, Process::default_env());
+    }
+
+    #[test]
+    fn root_default() {
+        let root = Root::default();
+        assert_eq!(root.path, Root::default_path());
+        assert_eq!(root.readonly, Root::default_readonly());
+    }
+}
