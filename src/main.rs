@@ -1,9 +1,9 @@
 extern crate clap;
 extern crate serde;
-
-pub mod oci_spec;
+extern crate cr7;
 
 use clap::{Arg, App, SubCommand};
+use cr7::oci_spec;
 
 const VERSION: &str = "0.0.1";
 const APP_NAME: &str = "cr7";
