@@ -3,6 +3,8 @@ extern crate clap;
 extern crate cr7;
 
 use cr7::oci;
+use cr7::linux;
+
 use clap::App;
 
 fn main() {
@@ -13,7 +15,7 @@ fn main() {
         let spec_path = matches.value_of("spec").unwrap_or("config.json");
         match oci::Spec::from_json(spec_path) {
             Ok(spec) => {
-                println!("{:?}", spec);
+                linux::run_container(spec);
             }
             Err(err) => {
                 println!("{}", err);
