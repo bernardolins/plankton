@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::ffi;
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -7,10 +8,10 @@ pub struct Process {
     pub terminal: bool,
 
     #[serde(default = "Process::default_args")]
-    pub args: Vec<String>,
+    pub args: Vec<ffi::CString>,
 
     #[serde(default = "Process::default_env")]
-    pub env: Vec<String>,
+    pub env: Vec<ffi::CString>,
 }
 
 impl Process {
@@ -23,15 +24,15 @@ impl Process {
     }
 
     fn default_terminal() -> bool { true }
-    fn default_args() -> Vec<String> { vec!("sh".to_string()) }
-    fn default_env() -> Vec<String> { Vec::new() }
+    fn default_args() -> Vec<ffi::CString> { vec!(ffi::CString::new("sh").unwrap()) }
+    fn default_env() -> Vec<ffi::CString> { Vec::new() }
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Root {
     #[serde(default = "Root::default_path")]
-    pub path: String,
+    pub path: ffi::CString,
 
     #[serde(default = "Root::default_readonly")]
     pub readonly: bool,
@@ -45,7 +46,7 @@ impl Root {
         }
     }
 
-    fn default_path() -> String { "rootpath".to_string() }
+    fn default_path() -> ffi::CString { ffi::CString::new("rootpath").unwrap() }
     fn default_readonly() -> bool { true }
 }
 
