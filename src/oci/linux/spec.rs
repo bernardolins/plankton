@@ -52,7 +52,7 @@ impl Root {
 
 #[cfg(test)]
 mod tests {
-    use oci::spec::{Process, Root};
+    use oci::linux::spec::{Process, Root};
 
     #[test]
     fn process_default() {
