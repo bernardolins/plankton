@@ -3,20 +3,14 @@ use std::io::BufReader;
 use std::error::Error;
 use serde::Deserialize;
 
-pub mod spec;
+mod root;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Spec {
-    pub oci_version: String,
-
-    pub hostname: Option<String>,
-
-    #[serde(default = "spec::Root::default")]
-    pub root: spec::Root,
-
-    #[serde(default = "spec::Process::default")]
-    pub process: spec::Process,
+    oci_version: String,
+    hostname: Option<String>,
+    root: root::Spec,
 }
 
 impl Spec {
@@ -26,6 +20,11 @@ impl Spec {
         let spec = serde_json::from_reader(reader)?;
         Ok(spec)
     }
+
+    pub fn oci_version(&self) -> &str { &self.oci_version }
+    pub fn hostname(&self) -> &Option<String> { &self.hostname }
+    pub fn root_path(&self) -> &str { &self.root.path() }
+    pub fn is_root_readonly(&self) -> bool { self.root.readonly() }
 }
 
 #[cfg(test)]
@@ -46,8 +45,10 @@ mod tests {
         file_path.to_str().unwrap().to_string()
     }
 
-    fn remove_tmp_file(path: &str) {
-        std::fs::remove_file(path).unwrap();
+    fn remove_tmp_file(path: &str) { std::fs::remove_file(path).unwrap(); }
+
+    fn valid_json() -> &'static str {
+        "{\"ociVersion\": \"1.0.0\", \"hostname\": \"test\", \"root\": {\"path\": \"rootpath\"}}"
     }
 
     #[test]
@@ -57,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn test_oci_version_missing() {
+    fn test_oci_version_field_missing() {
         let contents = "{}";
         let path = create_tmp_file(contents);
         let err = Spec::from_json(&path);
@@ -66,7 +67,7 @@ mod tests {
     }
 
     #[test]
-    fn test_oci_version_invalid() {
+    fn test_oci_version_field_invalid() {
         let contents = "{\"ociVersion\": 1}";
         let path = create_tmp_file(contents);
         let err = Spec::from_json(&path);
@@ -75,7 +76,7 @@ mod tests {
     }
 
     #[test]
-    fn test_oci_version_snake_case() {
+    fn test_oci_version_field_snake_case() {
         let contents = "{\"oci_version\": \"1.0.0\"}";
         let path = create_tmp_file(contents);
         let err = Spec::from_json(&path);
@@ -84,8 +85,8 @@ mod tests {
     }
 
     #[test]
-    fn test_hostname_missing() {
-        let contents = "{\"ociVersion\": \"1.0.0\"}";
+    fn test_hostname_field_missing() {
+        let contents = "{\"ociVersion\": \"1.0.0\", \"root\": {\"path\": \"mycontainer\"}}";
         let path = create_tmp_file(contents);
         let spec = Spec::from_json(&path);
         assert!(spec.is_ok(), "expected {:?} to be ok", spec);
@@ -94,11 +95,57 @@ mod tests {
     }
 
     #[test]
-    fn test_hostname_invalid() {
-        let contents = "{\"ociVersion\": \"1.0.0\", \"hostname\": 1}";
+    fn test_hostname_field_invalid() {
+        let contents = "{\"ociVersion\": \"1.0.0\", \"hostname\": 1, root: {\"path\": \"mycontainer\"}}";
         let path = create_tmp_file(contents);
         let err = Spec::from_json(&path);
         assert!(err.is_err(), "expected {:?} to be an error", err);
+        remove_tmp_file(&path);
+    }
+
+    #[test]
+    fn test_oci_version() {
+        let path = create_tmp_file(valid_json());
+        let spec = Spec::from_json(&path);
+        assert!(spec.is_ok(), "expected {:?} to be ok", spec);
+        assert_eq!(spec.unwrap().oci_version(), "1.0.0");
+        remove_tmp_file(&path);
+    }
+
+    #[test]
+    fn test_hostname_some() {
+        let path = create_tmp_file(valid_json());
+        let spec = Spec::from_json(&path);
+        assert!(spec.is_ok(), "expected {:?} to be ok", spec);
+        assert_eq!(*spec.unwrap().hostname(), Some("test".to_string()));
+        remove_tmp_file(&path);
+    }
+
+    #[test]
+    fn test_hostname_none() {
+        let contents = "{\"ociVersion\": \"1.0.0\", \"root\": {\"path\": \"rootpath\"}}";
+        let path = create_tmp_file(&contents);
+        let spec = Spec::from_json(&path);
+        assert!(spec.is_ok(), "expected {:?} to be ok", spec);
+        assert_eq!(*spec.unwrap().hostname(), None);
+        remove_tmp_file(&path);
+    }
+
+    #[test]
+    fn test_root_path() {
+        let path = create_tmp_file(valid_json());
+        let spec = Spec::from_json(&path);
+        assert!(spec.is_ok(), "expected {:?} to be ok", spec);
+        assert_eq!(spec.unwrap().root_path(), "rootpath");
+        remove_tmp_file(&path);
+    }
+
+    #[test]
+    fn test_is_root_readonly() {
+        let path = create_tmp_file(valid_json());
+        let spec = Spec::from_json(&path);
+        assert!(spec.is_ok(), "expected {:?} to be ok", spec);
+        assert_eq!(spec.unwrap().is_root_readonly(), true);
         remove_tmp_file(&path);
     }
 }
