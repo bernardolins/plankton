@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::ffi::OsStr;
 use serde::Deserialize;
+use oci::error::ConfigError;
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -17,12 +18,16 @@ impl Spec {
     pub fn path(&self) -> &str { &self.path }
     pub fn readonly(&self) -> bool { self.readonly}
 
-    pub fn is_valid(&self) -> bool {
+    pub fn validate(&self) -> Result<(), ConfigError> {
         let path = Path::new(&self.path);
         if path.is_dir() {
-            Some(OsStr::new("rootfs")) == path.file_name()
+            if path.file_name() == Some(OsStr::new("rootfs")) {
+                Ok(())
+            } else {
+                Err(ConfigError::new("root path must a dir named 'rootfs'"))
+            }
         } else {
-            false
+            Err(ConfigError::new(&format!("{} must be an existent dir", &self.path)))
         }
     }
 }
@@ -63,7 +68,7 @@ mod tests {
     }
 
     #[test]
-    fn test_is_valid() {
+    fn test_validate() {
         let table = vec![
             (create_tmp_dir("rootfs"), true),
             (create_tmp_dir("not_rootfs"), false),
@@ -72,7 +77,7 @@ mod tests {
 
         for (path, expected) in table {
             let spec = Spec{path: path.clone(), readonly: false};
-            assert_eq!(spec.is_valid(), expected, "expected {:?} to be valid", spec);
+            assert_eq!(spec.validate().is_ok(), expected, "expected {:?} to be ok", spec);
             remove_tmp_dir(&path);
         }
 
