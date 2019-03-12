@@ -2,12 +2,14 @@ use std::io::BufRead;
 use std::error::Error;
 use serde::Deserialize;
 
+mod root;
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Spec {
     oci_version: String,
     hostname: Option<String>,
-    root: Root,
+    root: root::Spec,
 }
 
 impl Spec {
@@ -22,18 +24,3 @@ impl Spec {
     pub fn is_root_readonly(&self) -> bool { self.root.readonly() }
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct Root {
-    path: String,
-
-    #[serde(default = "Root::default_readonly")]
-    readonly: bool,
-}
-
-impl Root {
-    fn default_readonly() -> bool { true }
-
-    pub fn path(&self) -> &str { &self.path }
-    pub fn readonly(&self) -> bool { self.readonly}
-}
