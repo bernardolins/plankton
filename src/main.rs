@@ -8,7 +8,7 @@ fn main() {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
 
-    if let Some(matches) = matches.subcommand_matches("run") {
+    if let Some(matches) = matches.subcommand_matches("create") {
         let spec_path = matches.value_of("spec").unwrap_or("config.json");
 
         let config = match cr7::read_config(spec_path) {

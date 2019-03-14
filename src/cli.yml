@@ -7,16 +7,16 @@ args:
         help: Prints the application version
         takes_value: false
 subcommands:
-    - run:
-        about: Creates a new container using a spec file
+    - create:
+        about: Creates a new container using a config file
         args:
             - container-id:
                 index: 1
                 required: true
                 help: The id of the new container
-            - spec:
+            - config:
                 required: false
-                short: s
-                long: spec
+                short: c
+                long: config
                 takes_value: true
 
