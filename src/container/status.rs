@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Status {
     Creating,
     Created,
@@ -17,6 +17,7 @@ impl Status {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 
