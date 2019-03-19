@@ -2,6 +2,7 @@ extern crate serde;
 extern crate nix;
 
 pub mod spec;
+pub mod container;
 
 use std::fs::File;
 use std::io::BufReader;
