@@ -2,3 +2,5 @@
 **/*.rs.bk
 
 .vagrant/
+config.json
+rootfs/
