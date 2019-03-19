@@ -3,6 +3,7 @@ extern crate clap;
 extern crate cr7;
 
 use clap::App;
+use cr7::spec;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
@@ -19,7 +20,7 @@ fn main() {
             }
         };
 
-        match cr7::build_paltform_spec(config) {
+        match spec::build(config) {
             Ok(spec) => println!("{:?}", spec),
             Err(err) => println!("{}", err)
         }
