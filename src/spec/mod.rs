@@ -1,5 +1,5 @@
 #[cfg(target_os = "linux")]
-pub mod linux;
+mod linux;
 
 use std::io::BufRead;
 use std::error::Error;
