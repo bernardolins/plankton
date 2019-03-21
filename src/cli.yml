@@ -14,9 +14,9 @@ subcommands:
                 index: 1
                 required: true
                 help: The id of the new container
-            - config:
+            - bundle:
                 required: false
-                short: c
-                long: config
+                short: b
+                long: bundle
                 takes_value: true
 
