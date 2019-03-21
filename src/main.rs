@@ -3,7 +3,6 @@ extern crate clap;
 extern crate cr7;
 
 use clap::App;
-use cr7::spec;
 use cr7::container;
 
 fn main() {
@@ -14,7 +13,7 @@ fn main() {
         let bundle_path = matches.value_of("bundle").unwrap_or(".");
         let container_id = matches.value_of("container-id").unwrap();
 
-        let container = match container::Container::new(container_id, bundle_path) {
+        match container::Container::new(container_id, bundle_path) {
             Ok(container) => println!("{:?}", container),
             Err(err) => println!("{}", err)
         };
