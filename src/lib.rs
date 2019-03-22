@@ -3,6 +3,7 @@ extern crate nix;
 
 pub mod spec;
 pub mod container;
+pub mod error;
 
 use std::fs::File;
 use std::io::BufReader;
