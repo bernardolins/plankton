@@ -37,6 +37,7 @@ impl From<serde_json::error::Error> for Error {
             serde_json::error::Category::Io => Error::ConfigIO,
             serde_json::error::Category::Syntax => Error::ConfigSyntax,
             serde_json::error::Category::Data => Error::ParseConfig,
+            serde_json::error::Category::Eof => Error::ParseConfig,
             _ => Error::Unknown,
         }
     }
