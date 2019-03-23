@@ -6,6 +6,7 @@ pub enum Error {
     ParseConfig,
     ConfigIO,
     Unknown,
+    ContainerAlreadyExists,
 }
 
 impl std::fmt::Display for Error {
@@ -17,6 +18,7 @@ impl std::fmt::Display for Error {
             Error::ParseConfig => "invalid data on config.json",
             Error::ConfigIO => "error opening config.json",
             Error::Unknown => "unknown error",
+            Error::ContainerAlreadyExists => "container already exists",
         };
         write!(f, "{}", message)
     }
