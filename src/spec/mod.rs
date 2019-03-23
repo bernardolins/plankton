@@ -22,4 +22,6 @@ impl Spec {
        let spec: Spec = serde_json::from_reader(reader)?;
        Ok(spec)
     }
+
+    pub fn oci_version(&self) -> &str { &self.oci_version }
 }
