@@ -1,4 +1,5 @@
 mod status;
+mod state;
 
 use std::path::PathBuf;
 use std::fs::File;
@@ -6,6 +7,7 @@ use std::io::BufReader;
 use spec::Spec;
 use super::error::Error;
 use self::status::Status;
+use self::state::State;
 
 const CONFIG_FILE_NAME: &str = "config.json";
 
@@ -20,6 +22,8 @@ pub struct Container {
 
 impl Container {
     pub fn id(&self) -> &str { &self.id }
+    pub fn current_status(&self) -> &str { &self.status.to_str() }
+    pub fn oci_version(&self) -> &str { &self.spec.oci_version() }
 }
 
 impl Container {
@@ -35,6 +39,9 @@ impl Container {
             config_path: config_path,
             spec: spec,
         };
+
+        let state = State::new(&container)?;
+        state.save()?;
 
         Ok(container)
     }

@@ -1,4 +1,5 @@
 extern crate cr7;
+extern crate rand;
 
 mod common;
 
@@ -41,7 +42,18 @@ fn config_file_invalid() {
 #[test]
 fn create_container() {
     let bundle = Bundle::new(ConfigTemplate::Valid);
-    let container = Container::new("some-container", bundle.str_path());
+    let container_id = format!("container-{}", rand::random::<u32>());
+    let container = Container::new(&container_id, bundle.str_path());
     assert!(container.is_ok(), "expect {:?} to be ok", container);
-    assert_eq!(container.unwrap().id(), "some-container");
+    assert_eq!(container.unwrap().id(), container_id);
+}
+
+#[test]
+fn container_already_exist() {
+    let bundle = Bundle::new(ConfigTemplate::Valid);
+    let container_id = format!("container-{}", rand::random::<u32>());
+    Container::new(&container_id, bundle.str_path()).unwrap();
+    let container = Container::new(&container_id, bundle.str_path());
+    assert!(container.is_err(), "expect {:?} to be ok", container);
+    assert_eq!(container.err().unwrap(), Error::ContainerAlreadyExists);
 }
