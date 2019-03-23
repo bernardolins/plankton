@@ -21,6 +21,10 @@ pub struct Container {
 }
 
 impl Container {
+    pub fn id(&self) -> &str { &self.id }
+}
+
+impl Container {
     pub fn new(id: &str, bundle_path: &str) -> Result<Container, Error> {
         let bundle_path = PathBuf::from(bundle_path).canonicalize()?;
         let config_path = bundle_path.join(CONFIG_FILE_NAME);
@@ -35,30 +39,5 @@ impl Container {
         };
 
         Ok(container)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    extern crate tempfile;
-
-    use super::*;
-
-    use std::fs::File;
-
-    #[test]
-    fn test_bundle_path_must_exist() {
-        let bundle_path = tempfile::tempdir().unwrap();
-        let config_path = bundle_path.path().join(CONFIG_FILE_NAME);
-        let config_file = File::create(config_path).unwrap();
-
-        let ok = Container::new("container1", bundle_path.path().to_str().unwrap());
-        assert!(ok.is_ok(), "expected {:?} to be ok", ok);
-
-        let err = Container::new("container1", "/invalid/path/to/bundle");
-        assert!(err.is_err(), "expected {:?} to be err", err);
-
-        drop(config_file);
-        bundle_path.close().unwrap();
     }
 }
