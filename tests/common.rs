@@ -26,8 +26,8 @@ impl ConfigTemplate {
 
 
 pub struct Bundle {
-    dir: TempDir,
-    path: PathBuf,
+    pub dir: TempDir,
+    pub path: PathBuf,
 }
 
 impl Bundle {
@@ -39,6 +39,17 @@ impl Bundle {
         let mut config_file = File::create(config_path).unwrap();
         let mut template_content = BufReader::new(template.file());
         io::copy(&mut template_content, &mut config_file).unwrap();
+
+        Bundle {
+            dir: dir,
+            path: dir_path,
+        }
+    }
+
+    pub fn empty() -> Bundle {
+        let dir = tempfile::tempdir().unwrap();
+        let dir_path = PathBuf::from(dir.path());
+        let config_path = dir_path.join("config.json");
 
         Bundle {
             dir: dir,

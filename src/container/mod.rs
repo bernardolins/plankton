@@ -3,11 +3,9 @@ mod status;
 use std::path::PathBuf;
 use std::fs::File;
 use std::io::BufReader;
-
-use self::status::Status;
-
 use spec::Spec;
 use super::error::Error;
+use self::status::Status;
 
 const CONFIG_FILE_NAME: &str = "config.json";
 
