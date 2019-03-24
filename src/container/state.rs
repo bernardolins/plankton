@@ -2,9 +2,9 @@ use crate::container::Container;
 
 #[derive(Debug)]
 pub struct State {
-    oci_version: String,
-    id: String,
-    status: String,
+    pub oci_version: String,
+    pub id: String,
+    pub status: String,
 }
 
 impl From<&Container> for State {

@@ -32,3 +32,14 @@ fn container_already_exist() {
     assert!(container.is_err(), "expect {:?} to be ok", container);
     assert_eq!(container.err().unwrap(), Error::ContainerAlreadyExists);
 }
+
+#[test]
+fn container_state() {
+    let bundle = setup_bundle();
+    let container_id = format!("container-{}", rand::random::<u32>());
+    let container = Container::create(&container_id, bundle);
+    let state = container.unwrap().state();
+    assert_eq!(state.oci_version, "1.0.1-dev");
+    assert_eq!(state.id, container_id);
+    assert_eq!(state.status, "creating");
+}
