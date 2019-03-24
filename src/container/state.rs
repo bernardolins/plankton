@@ -1,10 +1,20 @@
-use crate::container::Container;
+use serde::Serialize;
 
-#[derive(Debug)]
+use crate::container::Container;
+use crate::error::Error;
+
+#[derive(Debug, Serialize)]
 pub struct State {
     pub oci_version: String,
     pub id: String,
     pub status: String,
+}
+
+impl State {
+    pub fn to_json(&self) -> Result<String, Error> {
+        let json = serde_json::to_string_pretty(&self)?;
+        Ok(json)
+    }
 }
 
 impl From<&Container> for State {

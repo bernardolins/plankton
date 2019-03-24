@@ -33,7 +33,12 @@ fn main() {
         let container_id = matches.value_of("container-id").unwrap();
 
         match container::Container::load(container_id) {
-            Ok(container) => println!("{:?}", container.state()),
+            Ok(container) => {
+                if let Ok(json) = container.state().to_json() {
+                    println!("{}", json);
+                }
+
+            }
             Err(err) => println!("{}", err),
         };
     }
