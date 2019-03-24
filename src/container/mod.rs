@@ -14,16 +14,15 @@ const CONFIG_FILE_NAME: &str = "config.json";
 #[derive(Debug)]
 pub struct Container {
     id: String,
+    oci_version: String,
     status: Status,
     bundle_path: PathBuf,
-    config_path: PathBuf,
-    spec: Spec,
 }
 
 impl Container {
     pub fn id(&self) -> &str { &self.id }
     pub fn current_status(&self) -> &str { &self.status.to_str() }
-    pub fn oci_version(&self) -> &str { &self.spec.oci_version() }
+    pub fn oci_version(&self) -> &str { &self.oci_version }
 }
 
 impl Container {
@@ -33,16 +32,45 @@ impl Container {
         let spec = Spec::new(&config_path)?;
 
         let container = Container {
-            id: id.to_string(),
+            id: String::from(id),
+            oci_version: String::from(spec.oci_version()),
             status: Status::Creating,
             bundle_path: bundle_path,
-            config_path: config_path,
-            spec: spec,
         };
 
         let state = State::new(&container)?;
         state.save()?;
 
         Ok(container)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::{Path, PathBuf};
+
+    fn container() -> Container {
+        Container {
+            id: String::from("container1"),
+            oci_version: String::from("1.0.0"),
+            status: Status::Creating,
+            bundle_path: PathBuf::from("/containers/container1"),
+        }
+    }
+
+    #[test]
+    fn id() {
+        assert_eq!(container().id, "container1");
+    }
+
+    #[test]
+    fn current_status() {
+        assert_eq!(container().id, "container1");
+    }
+
+    #[test]
+    fn oci_version() {
+        assert_eq!(container().id, "container1");
     }
 }
