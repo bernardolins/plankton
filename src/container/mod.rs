@@ -41,6 +41,15 @@ impl Container {
         Ok(container)
     }
 
+    pub fn load(container_id: &str) -> Result<Container, Error> {
+        let path = Container::info_path(container_id);
+        let file = File::open(&path)?;
+        let reader = BufReader::new(file);
+        let container: Container = serde_json::from_reader(reader)?;
+
+        Ok(container)
+    }
+
     pub fn state(&self) -> State {
         State::from(self)
     }

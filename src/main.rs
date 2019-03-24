@@ -28,4 +28,13 @@ fn main() {
             Err(err) => println!("{}", err),
         };
     }
+
+    if let Some(matches) = matches.subcommand_matches("state") {
+        let container_id = matches.value_of("container-id").unwrap();
+
+        match container::Container::load(container_id) {
+            Ok(container) => println!("{:?}", container.state()),
+            Err(err) => println!("{}", err),
+        };
+    }
 }

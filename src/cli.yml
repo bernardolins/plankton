@@ -20,3 +20,10 @@ subcommands:
                 long: bundle
                 takes_value: true
 
+    - state:
+        about: Prints the state of the container
+        args:
+            - container-id:
+                index: 1
+                required: true
+                help: The id of the new container
