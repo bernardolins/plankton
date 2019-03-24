@@ -12,7 +12,7 @@ use crate::error::Error;
 
 use self::status::Status;
 
-const STATE_FILE_DIRECTORY: &str = "/run/cr7";
+const CONTAINER_INFO_DIRECTORY: &str = "/run/cr7";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Container {
@@ -24,10 +24,8 @@ pub struct Container {
 
 impl Container {
     pub fn create(id: &str, bundle: Bundle) -> Result<Container, Error> {
-        match Container::load_state(id) {
-            Ok(_) => return Err(Error::ContainerAlreadyExists),
-            Err(Error::NotFound) => (),
-            Err(err) => return Err(err),
+        if Container::is_created(id) {
+            return Err(Error::ContainerAlreadyExists)
         }
 
         let container = Container {
@@ -37,30 +35,26 @@ impl Container {
             bundle: bundle,
         };
 
-        container.save_state()?;
+        container.store()?;
 
         Ok(container)
     }
 
-    pub fn save_state(&self) -> Result<(), Error> {
-        let path = Container::state_path(&self.id);
+    fn store(&self) -> Result<(), Error> {
+        let path = Container::info_path(&self.id);
         let mut file = File::create(path)?;
         let state_string = serde_json::to_string(&self)?;
         file.write_all(state_string.as_bytes())?;
         Ok(())
     }
 
-    pub fn load_state(container_id: &str) -> Result<Container, Error> {
-        let path = Container::state_path(container_id);
-        let file = File::open(&path)?;
-        let reader = BufReader::new(file);
-        let container: Container = serde_json::from_reader(reader)?;
-
-        Ok(container)
+    fn is_created(container_id: &str) -> bool {
+        let state_file = Container::info_path(container_id);
+        state_file.is_file()
     }
 
-    fn state_path(container_id: &str) -> PathBuf {
-        let state_path = Path::new(STATE_FILE_DIRECTORY);
-        state_path.join(container_id)
+    fn info_path(container_id: &str) -> PathBuf {
+        let info_path = Path::new(CONTAINER_INFO_DIRECTORY);
+        info_path.join(container_id)
     }
 }
