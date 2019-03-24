@@ -28,13 +28,13 @@ impl ConfigTemplate {
     }
 }
 
-pub struct Bundle {
+pub struct TestBundle {
     pub dir: TempDir,
     pub path: PathBuf,
 }
 
-impl Bundle {
-    pub fn new(template: ConfigTemplate) -> Bundle {
+impl TestBundle {
+    pub fn new(template: ConfigTemplate) -> TestBundle {
         let dir = tempfile::tempdir().unwrap();
         let dir_path = PathBuf::from(dir.path());
         let config_path = dir_path.join("config.json");
@@ -43,17 +43,17 @@ impl Bundle {
         let mut template_content = BufReader::new(template.file());
         io::copy(&mut template_content, &mut config_file).unwrap();
 
-        Bundle {
+        TestBundle {
             dir: dir,
             path: dir_path,
         }
     }
 
-    pub fn empty() -> Bundle {
+    pub fn empty() -> TestBundle {
         let dir = tempfile::tempdir().unwrap();
         let dir_path = PathBuf::from(dir.path());
 
-        Bundle {
+        TestBundle {
             dir: dir,
             path: dir_path,
         }

@@ -6,7 +6,7 @@ mod common;
 use cr7::container::Container;
 use cr7::error::Error;
 
-use common::{Bundle, ConfigTemplate};
+use common::{TestBundle, ConfigTemplate};
 
 #[test]
 fn bundle_path_missing() {
@@ -17,7 +17,7 @@ fn bundle_path_missing() {
 
 #[test]
 fn config_file_missing() {
-    let bundle = Bundle::empty();
+    let bundle = TestBundle::empty();
     let container = Container::create("some-container", bundle.str_path());
     assert!(container.is_err(), "expect {:?} to be err", container);
     assert_eq!(container.err().unwrap(), Error::NotFound)
@@ -25,7 +25,7 @@ fn config_file_missing() {
 
 #[test]
 fn config_file_synxtax_error() {
-    let bundle = Bundle::new(ConfigTemplate::SyntaxError);
+    let bundle = TestBundle::new(ConfigTemplate::SyntaxError);
     let container = Container::create("some-container", bundle.str_path());
     assert!(container.is_err(), "expect {:?} to be err", container);
     assert_eq!(container.err().unwrap(), Error::ConfigSyntax);
@@ -33,7 +33,7 @@ fn config_file_synxtax_error() {
 
 #[test]
 fn config_file_invalid() {
-    let bundle = Bundle::new(ConfigTemplate::Invalid);
+    let bundle = TestBundle::new(ConfigTemplate::Invalid);
     let container = Container::create("some-container", bundle.str_path());
     assert!(container.is_err(), "expect {:?} to be err", container);
     assert_eq!(container.err().unwrap(), Error::ParseConfig);
@@ -41,7 +41,7 @@ fn config_file_invalid() {
 
 #[test]
 fn create_container() {
-    let bundle = Bundle::new(ConfigTemplate::Valid);
+    let bundle = TestBundle::new(ConfigTemplate::Valid);
     let container_id = format!("container-{}", rand::random::<u32>());
     let container = Container::create(&container_id, bundle.str_path());
     assert!(container.is_ok(), "expect {:?} to be ok", container);
@@ -50,7 +50,7 @@ fn create_container() {
 
 #[test]
 fn container_already_exist() {
-    let bundle = Bundle::new(ConfigTemplate::Valid);
+    let bundle = TestBundle::new(ConfigTemplate::Valid);
     let container_id = format!("container-{}", rand::random::<u32>());
     Container::create(&container_id, bundle.str_path()).unwrap();
     let container = Container::create(&container_id, bundle.str_path());
