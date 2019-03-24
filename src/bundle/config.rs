@@ -13,6 +13,7 @@ pub struct Config {
     oci_version: String,
     hostname: Option<String>,
     root: Root,
+    process: Process
 }
 
 impl Config {
@@ -34,4 +35,10 @@ impl Config {
 struct Root {
     pub path: String,
     pub readonly: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Process {
+    args: Vec<String>,
 }
