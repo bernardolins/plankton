@@ -23,9 +23,7 @@ impl Container {
     pub fn id(&self) -> &str { &self.id }
     pub fn current_status(&self) -> &str { &self.status.to_str() }
     pub fn oci_version(&self) -> &str { &self.oci_version }
-}
 
-impl Container {
     pub fn new(id: &str, bundle_path: &str) -> Result<Container, Error> {
         let bundle_path = PathBuf::from(bundle_path).canonicalize()?;
         let config_path = bundle_path.join(CONFIG_FILE_NAME);
@@ -48,7 +46,7 @@ impl Container {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::{Path, PathBuf};
+    use std::path::PathBuf;
 
     fn container() -> Container {
         Container {
@@ -61,16 +59,16 @@ mod tests {
 
     #[test]
     fn id() {
-        assert_eq!(container().id, "container1");
+        assert_eq!(container().id(), "container1");
     }
 
     #[test]
     fn current_status() {
-        assert_eq!(container().id, "container1");
+        assert_eq!(container().current_status(), Status::Creating.to_str());
     }
 
     #[test]
     fn oci_version() {
-        assert_eq!(container().id, "container1");
+        assert_eq!(container().oci_version(), "1.0.0");
     }
 }
