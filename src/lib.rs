@@ -1,7 +1,7 @@
 extern crate serde;
 extern crate nix;
 
-pub mod spec;
+pub mod bundle;
 pub mod container;
 pub mod error;
 

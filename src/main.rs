@@ -2,8 +2,10 @@
 extern crate clap;
 extern crate cr7;
 
+use std::process;
 use clap::App;
 use cr7::container;
+use cr7::bundle;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
@@ -13,9 +15,17 @@ fn main() {
         let bundle_path = matches.value_of("bundle").unwrap_or(".");
         let container_id = matches.value_of("container-id").unwrap();
 
-        match container::Container::create(container_id, bundle_path) {
+        let bundle = match bundle::Bundle::new(bundle_path) {
+            Ok(bundle) => bundle,
+            Err(err) => {
+                println!("{}", err);
+                process::exit(1);
+            }
+        };
+
+        match container::Container::create(container_id, bundle) {
             Ok(container) => println!("{:?}", container),
-            Err(err) => println!("{}", err)
+            Err(err) => println!("{}", err),
         };
     }
 }
