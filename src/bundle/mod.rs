@@ -35,4 +35,6 @@ impl Bundle {
 
         Ok(bundle)
     }
+
+    pub fn config(&self) -> &Config { &self.config }
 }

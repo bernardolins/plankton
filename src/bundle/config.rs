@@ -12,6 +12,7 @@ use crate::error::Error;
 pub struct Config {
     oci_version: String,
     hostname: Option<String>,
+    root: Root,
 }
 
 impl Config {
@@ -21,4 +22,16 @@ impl Config {
        let spec: Config = serde_json::from_reader(reader)?;
        Ok(spec)
     }
+
+    pub fn hostname(&self) -> &Option<String> { &self.hostname }
+    pub fn oci_version(&self) -> &str { &self.oci_version }
+    pub fn root_path(&self) -> &str { &self.root.path }
+    pub fn root_readonly(&self) -> bool { self.root.readonly }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Root {
+    pub path: String,
+    pub readonly: bool,
 }
