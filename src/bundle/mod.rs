@@ -1,11 +1,13 @@
-use std::fs::File;
-use std::io::BufReader;
+pub mod config;
+
 use std::path::PathBuf;
 
 use serde::Deserialize;
 use serde::Serialize;
 
 use crate::error::Error;
+
+use self::config::Config;
 
 const CONFIG_FILE_NAME: &str = "config.json";
 const ROOTFS_NAME: &str = "rootfs";
@@ -32,22 +34,5 @@ impl Bundle {
         };
 
         Ok(bundle)
-    }
-}
-
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Config {
-    oci_version: String,
-    hostname: Option<String>,
-}
-
-impl Config {
-    pub fn load(path: &PathBuf) -> Result<Config, Error> {
-       let file = File::open(&path)?;
-       let reader = BufReader::new(file);
-       let spec: Config = serde_json::from_reader(reader)?;
-       Ok(spec)
     }
 }
