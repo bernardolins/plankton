@@ -13,7 +13,7 @@ fn main() {
         let bundle_path = matches.value_of("bundle").unwrap_or(".");
         let container_id = matches.value_of("container-id").unwrap();
 
-        match container::Container::new(container_id, bundle_path) {
+        match container::Container::create(container_id, bundle_path) {
             Ok(container) => println!("{:?}", container),
             Err(err) => println!("{}", err)
         };

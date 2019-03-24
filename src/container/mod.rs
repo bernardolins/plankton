@@ -25,7 +25,7 @@ impl Container {
     pub fn current_status(&self) -> &str { &self.status.to_str() }
     pub fn oci_version(&self) -> &str { &self.oci_version }
 
-    pub fn new(id: &str, bundle_path: &str) -> Result<Container, Error> {
+    pub fn create(id: &str, bundle_path: &str) -> Result<Container, Error> {
         match Container::load_state(id) {
             Ok(_) => return Err(Error::ContainerAlreadyExists),
             Err(Error::NotFound) => (),
