@@ -1,4 +1,5 @@
 mod status;
+mod state;
 
 use std::path::{Path, PathBuf};
 use std::fs::File;
@@ -8,16 +9,17 @@ use std::io::Write;
 use serde::{Serialize, Deserialize};
 
 use crate::bundle::Bundle;
+use crate::bundle::config::Config;
 use crate::error::Error;
 
 use self::status::Status;
+use self::state::State;
 
 const CONTAINER_INFO_DIRECTORY: &str = "/run/cr7";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Container {
     id: String,
-    oci_version: String,
     status: Status,
     bundle: Bundle,
 }
@@ -30,7 +32,6 @@ impl Container {
 
         let container = Container {
             id: String::from(id),
-            oci_version: String::from(""),
             status: Status::Creating,
             bundle: bundle,
         };
@@ -38,6 +39,26 @@ impl Container {
         container.store()?;
 
         Ok(container)
+    }
+
+    pub fn state(&self) -> State {
+        State::from(self)
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn status(&self) -> &Status {
+        &self.status
+    }
+
+    pub fn config(&self) -> &Config {
+        &self.bundle.config()
+    }
+
+    pub fn oci_version(&self) -> &str {
+        &self.config().oci_version()
     }
 
     fn store(&self) -> Result<(), Error> {
