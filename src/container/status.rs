@@ -1,4 +1,7 @@
-#[derive(Debug, PartialEq)]
+use serde::Serialize;
+use serde::Deserialize;
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Status {
     Creating,
     Created,

@@ -1,17 +1,18 @@
 mod status;
-mod state;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::BufReader;
+use std::io::Write;
 use spec::Spec;
 use super::error::Error;
 use self::status::Status;
-use self::state::State;
+use serde::{Serialize, Deserialize};
 
 const CONFIG_FILE_NAME: &str = "config.json";
+const STATE_FILE_DIRECTORY: &str = "/run/cr7";
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Container {
     id: String,
     oci_version: String,
@@ -25,6 +26,12 @@ impl Container {
     pub fn oci_version(&self) -> &str { &self.oci_version }
 
     pub fn new(id: &str, bundle_path: &str) -> Result<Container, Error> {
+        match Container::load_state(id) {
+            Ok(_) => return Err(Error::ContainerAlreadyExists),
+            Err(Error::NotFound) => (),
+            Err(err) => return Err(err),
+        }
+
         let bundle_path = PathBuf::from(bundle_path).canonicalize()?;
         let config_path = bundle_path.join(CONFIG_FILE_NAME);
         let spec = Spec::new(&config_path)?;
@@ -36,10 +43,31 @@ impl Container {
             bundle_path: bundle_path,
         };
 
-        let state = State::new(&container)?;
-        state.save()?;
+        container.save_state()?;
 
         Ok(container)
+    }
+
+    pub fn save_state(&self) -> Result<(), Error> {
+        let path = Container::state_path(&self.id);
+        let mut file = File::create(path)?;
+        let state_string = serde_json::to_string(&self)?;
+        file.write_all(state_string.as_bytes())?;
+        Ok(())
+    }
+
+    pub fn load_state(container_id: &str) -> Result<Container, Error> {
+        let path = Container::state_path(container_id);
+        let file = File::open(&path)?;
+        let reader = BufReader::new(file);
+        let container: Container = serde_json::from_reader(reader)?;
+
+        Ok(container)
+    }
+
+    fn state_path(container_id: &str) -> PathBuf {
+        let state_path = Path::new(STATE_FILE_DIRECTORY);
+        state_path.join(container_id)
     }
 }
 
