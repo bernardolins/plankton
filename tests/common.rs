@@ -14,11 +14,15 @@ pub enum ConfigTemplate {
     Invalid,
     NoRoot,
     NoProcess,
+
+    RootNoReadonly,
+    RootNoPath,
+    RootValid,
 }
 
 #[allow(dead_code)]
 impl ConfigTemplate {
-    fn file(&self) -> File {
+    pub fn file(&self) -> File {
         let file_name = match *self {
             ConfigTemplate::Valid => "valid_config.json",
             ConfigTemplate::NoHostname => "no_hostname_config.json",
@@ -26,6 +30,10 @@ impl ConfigTemplate {
             ConfigTemplate::Invalid => "invalid_config.json",
             ConfigTemplate::NoRoot => "no_root_node_config.json",
             ConfigTemplate::NoProcess => "no_process_node_config.json",
+
+            ConfigTemplate::RootNoPath => "root/no_path.json",
+            ConfigTemplate::RootNoReadonly => "root/no_readonly.json",
+            ConfigTemplate::RootValid => "root/valid.json",
         };
 
         let templates_path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/templates"));
