@@ -9,8 +9,8 @@ use std::io::Write;
 use serde::{Serialize, Deserialize};
 
 use crate::bundle::Bundle;
-use crate::bundle::config::Config;
 use crate::error::Error;
+use crate::config;
 
 use self::status::Status;
 use self::state::State;
@@ -22,6 +22,7 @@ pub struct Container {
     id: String,
     status: Status,
     bundle: Bundle,
+    config: config::Base,
 }
 
 impl Container {
@@ -30,10 +31,17 @@ impl Container {
             return Err(Error::ContainerAlreadyExists)
         }
 
+        let config = {
+            let config_path = bundle.config_path();
+            let config = config::load(&config_path)?;
+            config
+        };
+
         let container = Container {
             id: String::from(id),
             status: Status::Creating,
             bundle: bundle,
+            config: config,
         };
 
         container.store()?;
@@ -62,8 +70,8 @@ impl Container {
         &self.status
     }
 
-    pub fn config(&self) -> &Config {
-        &self.bundle.config()
+    pub fn config(&self) -> &config::Base {
+        &self.config
     }
 
     pub fn oci_version(&self) -> &str {

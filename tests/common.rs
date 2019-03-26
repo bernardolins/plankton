@@ -6,6 +6,7 @@ use std::io;
 use std::io::BufReader;
 use self::tempfile::TempDir;
 
+#[allow(dead_code)]
 pub enum ConfigTemplate {
     Valid,
     NoHostname,
@@ -13,6 +14,7 @@ pub enum ConfigTemplate {
     Invalid,
 }
 
+#[allow(dead_code)]
 impl ConfigTemplate {
     fn file(&self) -> File {
         let file_name = match *self {
@@ -28,16 +30,20 @@ impl ConfigTemplate {
     }
 }
 
+#[allow(dead_code)]
 pub struct TestBundle {
     pub dir: TempDir,
     pub path: PathBuf,
 }
 
+#[allow(dead_code)]
 impl TestBundle {
     pub fn new(template: ConfigTemplate) -> TestBundle {
         let dir = tempfile::tempdir().unwrap();
         let dir_path = PathBuf::from(dir.path());
         let config_path = dir_path.join("config.json");
+
+        println!("{:?}", config_path);
 
         let mut config_file = File::create(config_path).unwrap();
         let mut template_content = BufReader::new(template.file());
@@ -59,5 +65,6 @@ impl TestBundle {
         }
     }
 
+    pub fn path(&self) -> &PathBuf { &self.path }
     pub fn str_path(&self) -> &str { &self.path.to_str().unwrap() }
 }

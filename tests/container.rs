@@ -9,14 +9,11 @@ use cr7::error::Error;
 
 use common::{TestBundle, ConfigTemplate};
 
-fn setup_bundle() -> Bundle {
-    let test_bundle = TestBundle::new(ConfigTemplate::Valid);
-    Bundle::new(&test_bundle.str_path()).expect("failed to create bundle")
-}
-
 #[test]
 fn create_container() {
-    let bundle = setup_bundle();
+    let test_bundle = TestBundle::new(ConfigTemplate::Valid);
+    let bundle = Bundle::new(&test_bundle.str_path()).expect("failed to create bundle");
+
     let container_id = format!("container-{}", rand::random::<u32>());
     let container = Container::create(&container_id, bundle);
     assert!(container.is_ok(), "expect {:?} to be ok", container);
@@ -24,8 +21,12 @@ fn create_container() {
 
 #[test]
 fn container_already_exist() {
-    let bundle1 = setup_bundle();
-    let bundle2 = setup_bundle();
+    let test_bundle1 = TestBundle::new(ConfigTemplate::Valid);
+    let test_bundle2 = TestBundle::new(ConfigTemplate::Valid);
+
+    let bundle1 = Bundle::new(&test_bundle1.str_path()).expect("failed to create bundle");
+    let bundle2 = Bundle::new(&test_bundle2.str_path()).expect("failed to create bundle");
+
     let container_id = format!("container-{}", rand::random::<u32>());
     Container::create(&container_id, bundle1).unwrap();
     let container = Container::create(&container_id, bundle2);
@@ -35,7 +36,9 @@ fn container_already_exist() {
 
 #[test]
 fn container_state() {
-    let bundle = setup_bundle();
+    let test_bundle = TestBundle::new(ConfigTemplate::Valid);
+    let bundle = Bundle::new(&test_bundle.str_path()).expect("failed to create bundle");
+
     let container_id = format!("container-{}", rand::random::<u32>());
     let container = Container::create(&container_id, bundle);
     let state = container.unwrap().state();

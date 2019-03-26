@@ -24,22 +24,6 @@ fn config_file_missing() {
 }
 
 #[test]
-fn config_file_synxtax_error() {
-    let test_bundle = TestBundle::new(ConfigTemplate::SyntaxError);
-    let bundle = Bundle::new(test_bundle.str_path());
-    assert!(bundle.is_err(), "expect {:?} to be err", bundle);
-    assert_eq!(bundle.err().unwrap(), Error::ConfigSyntax);
-}
-
-#[test]
-fn config_file_invalid() {
-    let test_bundle = TestBundle::new(ConfigTemplate::Invalid);
-    let bundle = Bundle::new(test_bundle.str_path());
-    assert!(bundle.is_err(), "expect {:?} to be err", bundle);
-    assert_eq!(bundle.err().unwrap(), Error::ParseConfig);
-}
-
-#[test]
 fn valid_bundle() {
     let test_bundle = TestBundle::new(ConfigTemplate::Valid);
     let bundle = Bundle::new(&test_bundle.str_path());
