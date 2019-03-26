@@ -12,6 +12,7 @@ pub enum ConfigTemplate {
     NoHostname,
     SyntaxError,
     Invalid,
+    NoRoot,
 }
 
 #[allow(dead_code)]
@@ -22,6 +23,7 @@ impl ConfigTemplate {
             ConfigTemplate::NoHostname => "no_hostname_config.json",
             ConfigTemplate::SyntaxError => "syntax_error_config.json",
             ConfigTemplate::Invalid => "invalid_config.json",
+            ConfigTemplate::NoRoot => "no_root_node_config.json",
         };
 
         let templates_path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/templates"));
