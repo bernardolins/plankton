@@ -49,6 +49,16 @@ fn load_config_file_with_no_root() {
 }
 
 #[test]
+fn load_config_file_with_no_process() {
+    let test_bundle = TestBundle::new(ConfigTemplate::NoProcess);
+    let config_path = test_bundle.path().join("config.json");
+
+    let config = config::load(&config_path);
+    assert!(config.is_err(), "expect {:?} to be err", config);
+    assert_eq!(config.err().unwrap(), Error::ParseConfig);
+}
+
+#[test]
 fn load_config_file_successfully() {
     let test_bundle = TestBundle::new(ConfigTemplate::Valid);
     let config_path = test_bundle.path().join("config.json");
