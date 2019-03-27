@@ -18,6 +18,9 @@ pub enum ConfigTemplate {
     RootNoReadonly,
     RootNoPath,
     RootValid,
+
+    ProcessNoArgs,
+    ProcessValid,
 }
 
 #[allow(dead_code)]
@@ -34,6 +37,9 @@ impl ConfigTemplate {
             ConfigTemplate::RootNoPath => "root/no_path.json",
             ConfigTemplate::RootNoReadonly => "root/no_readonly.json",
             ConfigTemplate::RootValid => "root/valid.json",
+
+            ConfigTemplate::ProcessNoArgs => "process/no_args.json",
+            ConfigTemplate::ProcessValid => "process/valid.json",
         };
 
         let templates_path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/templates"));

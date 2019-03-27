@@ -5,3 +5,7 @@ use serde::{Serialize, Deserialize};
 pub struct Process {
     args: Vec<String>,
 }
+
+impl Process {
+    pub fn args(&self) -> &Vec<String> { &self.args }
+}
