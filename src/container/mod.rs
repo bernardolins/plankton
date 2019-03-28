@@ -1,5 +1,6 @@
 mod status;
 mod state;
+mod process;
 
 use std::path::{Path, PathBuf};
 use std::fs::File;
@@ -66,6 +67,10 @@ impl Container {
 
     pub fn id(&self) -> &str {
         &self.id
+    }
+
+    pub fn pid(&self) -> Option<i32> {
+        self.pid
     }
 
     pub fn status(&self) -> &Status {
