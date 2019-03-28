@@ -20,6 +20,7 @@ const CONTAINER_INFO_DIRECTORY: &str = "/run/cr7";
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Container {
     id: String,
+    pid: Option<i32>,
     status: Status,
     bundle: Bundle,
     config: config::Base,
@@ -39,6 +40,7 @@ impl Container {
 
         let container = Container {
             id: String::from(id),
+            pid: None,
             status: Status::Creating,
             bundle: bundle,
             config: config,

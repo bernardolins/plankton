@@ -7,6 +7,7 @@ use crate::error::Error;
 pub struct State {
     pub oci_version: String,
     pub id: String,
+    pub pid: Option<i32>,
     pub status: String,
 }
 
@@ -22,6 +23,7 @@ impl From<&Container> for State {
         State {
             oci_version: String::from(container.oci_version()),
             id: String::from(container.id()),
+            pid: container.pid(),
             status: String::from(container.status().to_str()),
         }
     }
