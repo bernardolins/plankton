@@ -1,3 +1,5 @@
+pub mod operations;
+
 mod status;
 
 use std::path::{Path, PathBuf};
@@ -7,7 +9,6 @@ use std::io::Write;
 
 use serde::{Serialize, Deserialize};
 
-use crate::bundle::Bundle;
 use crate::error::Error;
 use crate::config;
 
@@ -22,28 +23,6 @@ pub struct Container {
     status: Status,
     bundle_path: String,
     config: config::Base,
-}
-
-pub fn create(id: &str, bundle_path: &str) -> Result<Container, Error> {
-    if Container::is_created(id) {
-        return Err(Error::ContainerAlreadyExists);
-    }
-
-    let bundle = Bundle::new(bundle_path)?;
-    let config = config::load(&bundle.config_path())?;
-
-    let container = Container::new(id, bundle_path, config)?;
-    container.save_on_disk()?;
-
-    Ok(container)
-}
-
-pub fn state(container_id: &str) -> Result<String, Error> {
-    let container = Container::load_from_disk(container_id)?;
-    let state = State::from(container);
-    let json = serde_json::to_string_pretty(&state)?;
-
-    Ok(json)
 }
 
 impl Container {
