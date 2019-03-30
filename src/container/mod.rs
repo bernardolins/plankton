@@ -1,6 +1,4 @@
 mod status;
-mod state;
-mod process;
 
 use std::path::{Path, PathBuf};
 use std::fs::File;
@@ -14,7 +12,6 @@ use crate::error::Error;
 use crate::config;
 
 use self::status::Status;
-use self::state::State;
 
 const CONTAINER_INFO_DIRECTORY: &str = "/run/cr7";
 
@@ -23,36 +20,46 @@ pub struct Container {
     id: String,
     pid: Option<i32>,
     status: Status,
-    bundle: Bundle,
+    bundle_path: String,
     config: config::Base,
 }
 
+pub fn create(id: &str, bundle_path: &str) -> Result<Container, Error> {
+    if Container::is_created(id) {
+        return Err(Error::ContainerAlreadyExists);
+    }
+
+    let bundle = Bundle::new(bundle_path)?;
+    let config = config::load(&bundle.config_path())?;
+
+    let container = Container::new(id, bundle_path, config)?;
+    container.save_on_disk()?;
+
+    Ok(container)
+}
+
+pub fn state(container_id: &str) -> Result<String, Error> {
+    let container = Container::load_from_disk(container_id)?;
+    let state = State::from(container);
+    let json = serde_json::to_string_pretty(&state)?;
+
+    Ok(json)
+}
+
 impl Container {
-    pub fn create(id: &str, bundle: Bundle) -> Result<Container, Error> {
-        if Container::is_created(id) {
-            return Err(Error::ContainerAlreadyExists)
-        }
-
-        let config = {
-            let config_path = bundle.config_path();
-            let config = config::load(&config_path)?;
-            config
-        };
-
+    fn new(id: &str, bundle_path: &str, config: config::Base) -> Result<Container, Error> {
         let container = Container {
             id: String::from(id),
             pid: None,
             status: Status::Creating,
-            bundle: bundle,
+            bundle_path: String::from(bundle_path),
             config: config,
         };
-
-        container.store()?;
 
         Ok(container)
     }
 
-    pub fn load(container_id: &str) -> Result<Container, Error> {
+    fn load_from_disk(container_id: &str) -> Result<Container, Error> {
         let path = Container::info_path(container_id);
         let file = File::open(&path)?;
         let reader = BufReader::new(file);
@@ -61,31 +68,7 @@ impl Container {
         Ok(container)
     }
 
-    pub fn state(&self) -> State {
-        State::from(self)
-    }
-
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    pub fn pid(&self) -> Option<i32> {
-        self.pid
-    }
-
-    pub fn status(&self) -> &Status {
-        &self.status
-    }
-
-    pub fn config(&self) -> &config::Base {
-        &self.config
-    }
-
-    pub fn oci_version(&self) -> &str {
-        &self.config().oci_version()
-    }
-
-    fn store(&self) -> Result<(), Error> {
+    fn save_on_disk(&self) -> Result<(), Error> {
         let path = Container::info_path(&self.id);
         let mut file = File::create(path)?;
         let state_string = serde_json::to_string(&self)?;
@@ -101,5 +84,26 @@ impl Container {
     fn info_path(container_id: &str) -> PathBuf {
         let info_path = Path::new(CONTAINER_INFO_DIRECTORY);
         info_path.join(container_id)
+    }
+}
+
+#[derive(Serialize)]
+struct State {
+    oci_version: String,
+    id: String,
+    pid: Option<i32>,
+    status: String,
+    bundle: String,
+}
+
+impl From<Container> for State {
+    fn from(container: Container) -> State {
+        State {
+            oci_version: String::from(container.config.oci_version()),
+            id: String::from(container.id),
+            pid: container.pid,
+            status: String::from(container.status.to_str()),
+            bundle: container.bundle_path,
+        }
     }
 }
