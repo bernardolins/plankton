@@ -2,6 +2,9 @@ pub mod operations;
 
 mod status;
 
+mod state;
+pub use self::state::State;
+
 use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::BufReader;
@@ -63,26 +66,5 @@ impl Container {
     fn info_path(container_id: &str) -> PathBuf {
         let info_path = Path::new(CONTAINER_INFO_DIRECTORY);
         info_path.join(container_id)
-    }
-}
-
-#[derive(Serialize)]
-struct State {
-    oci_version: String,
-    id: String,
-    pid: Option<i32>,
-    status: String,
-    bundle: String,
-}
-
-impl From<Container> for State {
-    fn from(container: Container) -> State {
-        State {
-            oci_version: String::from(container.config.oci_version()),
-            id: String::from(container.id),
-            pid: container.pid,
-            status: String::from(container.status.to_str()),
-            bundle: container.bundle_path,
-        }
     }
 }
