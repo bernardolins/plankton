@@ -36,6 +36,14 @@ impl Container {
         Ok(container)
     }
 
+    fn set_status(&mut self, status: Status) {
+        self.status = status;
+    }
+
+    fn set_pid(&mut self, pid: i32) {
+        self.pid = Some(pid);
+    }
+
     fn to_json(&self) -> Result<String, Error> {
         let json = serde_json::to_string(&self)?;
         Ok(json)
