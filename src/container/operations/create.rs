@@ -12,7 +12,7 @@ pub fn run(id: &str, bundle_path: &str) -> Result<Container, Error> {
     let config = config::load(&bundle.config_path())?;
 
     let container = Container::new(id, bundle_path, config)?;
-    container.save_on_disk()?;
+    container.save()?;
 
     Ok(container)
 }

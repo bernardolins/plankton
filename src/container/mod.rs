@@ -38,21 +38,21 @@ impl Container {
         Ok(container)
     }
 
-    fn load_from_disk(container_id: &str) -> Result<Container, Error> {
+    fn save(&self) -> Result<(), Error> {
+        let path = Container::info_path(&self.id);
+        let mut file = File::create(path)?;
+        let state_string = serde_json::to_string(&self)?;
+        file.write_all(state_string.as_bytes())?;
+        Ok(())
+    }
+
+    fn load(container_id: &str) -> Result<Container, Error> {
         let path = Container::info_path(container_id);
         let file = File::open(&path)?;
         let reader = BufReader::new(file);
         let container: Container = serde_json::from_reader(reader)?;
 
         Ok(container)
-    }
-
-    fn save_on_disk(&self) -> Result<(), Error> {
-        let path = Container::info_path(&self.id);
-        let mut file = File::create(path)?;
-        let state_string = serde_json::to_string(&self)?;
-        file.write_all(state_string.as_bytes())?;
-        Ok(())
     }
 
     fn is_created(container_id: &str) -> bool {
