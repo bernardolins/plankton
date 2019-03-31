@@ -1,14 +1,10 @@
 pub mod operations;
 
+mod environment;
 mod status;
-
 mod state;
-pub use self::state::State;
 
 use std::path::{Path, PathBuf};
-use std::fs::File;
-use std::io::BufReader;
-use std::io::Write;
 
 use serde::{Serialize, Deserialize};
 
@@ -16,6 +12,7 @@ use crate::error::Error;
 use crate::config;
 
 use self::status::Status;
+pub use self::state::State;
 
 const CONTAINER_INFO_DIRECTORY: &str = "/run/cr7";
 
@@ -37,23 +34,6 @@ impl Container {
             bundle_path: String::from(bundle_path),
             config: config,
         };
-
-        Ok(container)
-    }
-
-    fn save(&self) -> Result<(), Error> {
-        let path = Container::info_path(&self.id);
-        let mut file = File::create(path)?;
-        let state_string = serde_json::to_string(&self)?;
-        file.write_all(state_string.as_bytes())?;
-        Ok(())
-    }
-
-    fn load(container_id: &str) -> Result<Container, Error> {
-        let path = Container::info_path(container_id);
-        let file = File::open(&path)?;
-        let reader = BufReader::new(file);
-        let container: Container = serde_json::from_reader(reader)?;
 
         Ok(container)
     }
