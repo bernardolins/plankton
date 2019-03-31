@@ -5,8 +5,10 @@ use crate::container::environment;
 use crate::error::Error;
 
 pub fn run(id: &str, bundle_path: &str) -> Result<Container, Error> {
-    if Container::is_created(id) {
-        return Err(Error::ContainerAlreadyExists);
+    let container = environment::load(id)?;
+
+    if let Some(_) = container {
+        return Err(Error::ContainerAlreadyExists)
     }
 
     let bundle = Bundle::new(bundle_path)?;
