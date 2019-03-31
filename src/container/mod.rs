@@ -4,6 +4,7 @@ mod environment;
 mod status;
 mod state;
 
+use std::io::BufRead;
 use std::path::{Path, PathBuf};
 
 use serde::{Serialize, Deserialize};
@@ -35,6 +36,16 @@ impl Container {
             config: config,
         };
 
+        Ok(container)
+    }
+
+    fn to_json(&self) -> Result<String, Error> {
+        let json = serde_json::to_string(&self)?;
+        Ok(json)
+    }
+
+    fn from_reader<R: BufRead>(reader: R) -> Result<Container, Error> {
+        let container: Container = serde_json::from_reader(reader)?;
         Ok(container)
     }
 
