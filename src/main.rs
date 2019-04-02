@@ -16,9 +16,12 @@ fn main() {
         let bundle_path = matches.value_of("bundle").unwrap_or(".");
         let container_id = matches.value_of("container-id").unwrap();
 
-        match container::operations::create(container_id, bundle_path) {
-            Ok(container) => println!("{:?}", container),
-            Err(err) => println!("{}", err),
+        match container::operations::run(container_id, bundle_path) {
+            Err(err) => {
+                println!("{}", err);
+                std::process::exit(1);
+            }
+            _ => ()
         };
     }
 

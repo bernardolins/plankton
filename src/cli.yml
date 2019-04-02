@@ -7,8 +7,8 @@ args:
         help: Prints the application version
         takes_value: false
 subcommands:
-    - create:
-        about: Creates a new container using a config file
+    - run:
+        about: Create and run a new container using the config file
         args:
             - container-id:
                 index: 1

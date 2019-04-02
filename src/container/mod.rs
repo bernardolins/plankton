@@ -40,8 +40,8 @@ impl Container {
         self.status = status;
     }
 
-    fn set_pid(&mut self, pid: i32) {
-        self.pid = Some(pid);
+    fn set_pid(&mut self, pid: Option<i32>) {
+        self.pid = pid;
     }
 
     fn to_json(&self) -> Result<String, Error> {

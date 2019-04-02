@@ -14,7 +14,7 @@ fn container_create() {
     let bundle_path = test_bundle.str_path();
 
     let container_id = format!("container-{}", rand::random::<u32>());
-    let container = container::operations::create(&container_id, bundle_path);
+    let container = container::operations::run(&container_id, bundle_path);
 
     assert!(container.is_ok(), "expect {:?} to be ok", container);
 }
@@ -27,8 +27,8 @@ fn container_already_exist() {
     let bundle_path2 = test_bundle2.str_path();
     let container_id = format!("container-{}", rand::random::<u32>());
 
-    container::operations::create(&container_id, bundle_path1).unwrap();
-    let container = container::operations::create(&container_id, bundle_path2);
+    container::operations::run(&container_id, bundle_path1).unwrap();
+    let container = container::operations::run(&container_id, bundle_path2);
 
     assert!(container.is_err(), "expect {:?} to be ok", container);
     assert_eq!(container.err().unwrap(), Error::ContainerAlreadyExists);
