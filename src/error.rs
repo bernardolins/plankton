@@ -11,6 +11,7 @@ pub enum Error {
     ResourceUnavailable,
     InvalidArgument,
     NotEnoughMemory,
+    PlatformNotSupported,
 }
 
 impl std::fmt::Display for Error {
@@ -27,6 +28,7 @@ impl std::fmt::Display for Error {
             Error::ResourceUnavailable => "resource unavailable",
             Error::InvalidArgument => "invalid argument",
             Error::NotEnoughMemory => "not enough memory available",
+            Error::PlatformNotSupported => "platform not supported",
         };
         write!(f, "{}", message)
     }
