@@ -17,12 +17,35 @@ impl Environment {
         }
     }
 
-    pub fn working_dir(&mut self, working_dir: &str) {
-        self.working_dir = Some(PathBuf::from(working_dir));
+    pub fn working_dir(&mut self, working_dir: &str) -> Result<(), Error> {
+        let cwd = PathBuf::from(working_dir);
+
+        if cwd.is_absolute() {
+            self.working_dir = Some(cwd);
+            Ok(())
+        } else {
+            Err(Error::WorkingDir)
+        }
     }
 
     pub fn hostname(&mut self, hostname: &str) {
         self.hostname = Some(String::from(hostname));
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Error {
+    WorkingDir,
+    Hostname,
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let message = match *self {
+            Error::WorkingDir => "container working dir must be a valid absolute path",
+            Error::Hostname => "container needs a private namespace in order to set hostname",
+        };
+        write!(f, "{}", message)
     }
 }
 
@@ -44,9 +67,18 @@ mod tests {
         let mut environment = Environment::new(&["sh"], "rootfs");
         assert!(&environment.working_dir.is_none());
 
-        environment.working_dir("/");
+        environment.working_dir("/").unwrap();
         assert_eq!(environment.working_dir.unwrap(), PathBuf::from("/"));
 
+    }
+
+    #[test]
+    fn environment_working_dir_invalid() {
+        let mut environment = Environment::new(&["sh"], "rootfs");
+
+        let cwd = environment.working_dir("./");
+        assert!(cwd.is_err());
+        assert_eq!(cwd.err().unwrap(), Error::WorkingDir);
     }
 
     #[test]
