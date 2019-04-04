@@ -1,9 +1,12 @@
 use std::path::PathBuf;
 
+const DEFAULT_WORKING_DIR: &str = "/";
+
+#[derive(Debug)]
 pub struct Environment {
     argv: Vec<String>,
     rootfs: PathBuf,
-    working_dir: Option<PathBuf>,
+    working_dir: PathBuf,
     hostname: Option<String>,
 }
 
@@ -12,25 +15,34 @@ impl Environment {
         Environment {
             argv: argv.iter().map(|arg| String::from(*arg)).collect(),
             rootfs: PathBuf::from(rootfs),
-            working_dir: None,
+            working_dir: PathBuf::from(DEFAULT_WORKING_DIR),
             hostname: None,
         }
     }
 
-    pub fn working_dir(&mut self, working_dir: &str) -> Result<(), Error> {
+    pub fn working_dir(&self) -> &PathBuf {
+        &self.working_dir
+    }
+
+    pub fn hostname(&self) -> &Option<String> {
+        &self.hostname
+    }
+
+    pub fn set_working_dir(&mut self, working_dir: &str) -> Result<(), Error> {
         let cwd = PathBuf::from(working_dir);
 
         if cwd.is_absolute() {
-            self.working_dir = Some(cwd);
+            self.working_dir = cwd;
             Ok(())
         } else {
             Err(Error::WorkingDir)
         }
     }
 
-    pub fn hostname(&mut self, hostname: &str) {
+    pub fn set_hostname(&mut self, hostname: &str) {
         self.hostname = Some(String::from(hostname));
     }
+
 }
 
 #[derive(Debug, PartialEq)]
@@ -58,36 +70,49 @@ mod tests {
     #[test]
     fn environment_new() {
         let environment = Environment::new(&["sh"], "rootfs");
+
         assert_eq!(environment.argv, vec!["sh"]);
         assert_eq!(environment.rootfs, PathBuf::from("rootfs"));
     }
 
     #[test]
-    fn environment_working_dir() {
-        let mut environment = Environment::new(&["sh"], "rootfs");
-        assert!(&environment.working_dir.is_none());
+    fn environment_working_dir_defaults_to_root() {
+        let environment = Environment::new(&["sh"], "rootfs");
 
-        environment.working_dir("/").unwrap();
-        assert_eq!(environment.working_dir.unwrap(), PathBuf::from("/"));
+        assert_eq!(environment.working_dir(), &PathBuf::from("/"));
+    }
+
+    #[test]
+    fn environment_set_working_dir() {
+        let mut environment = Environment::new(&["sh"], "rootfs");
+        let result = environment.set_working_dir("/tmp");
+
+        assert!(result.is_ok(), "expect {:?} to be ok", &result);
+        assert_eq!(environment.working_dir(), &PathBuf::from("/tmp"));
+    }
+
+    #[test]
+    fn environment_set_working_dir_relative_path() {
+        let mut environment = Environment::new(&["sh"], "rootfs");
+        let result = environment.set_working_dir("./");
+
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap(), Error::WorkingDir);
+    }
+
+    #[test]
+    fn environment_hostname_defaults_to_none() {
+        let environment = Environment::new(&["sh"], "rootfs");
+        assert!(&environment.hostname().is_none());
 
     }
 
     #[test]
-    fn environment_working_dir_invalid() {
+    fn environment_set_hostname() {
         let mut environment = Environment::new(&["sh"], "rootfs");
 
-        let cwd = environment.working_dir("./");
-        assert!(cwd.is_err());
-        assert_eq!(cwd.err().unwrap(), Error::WorkingDir);
-    }
-
-    #[test]
-    fn environment_hostname() {
-        let mut environment = Environment::new(&["sh"], "rootfs");
-        assert!(&environment.hostname.is_none());
-
-        environment.hostname("test");
-        assert_eq!(&environment.hostname.unwrap(), "test");
+        environment.set_hostname("test");
+        assert_eq!(environment.hostname(), &Some("test".to_string()));
 
     }
 }
