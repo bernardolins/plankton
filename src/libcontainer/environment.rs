@@ -20,6 +20,10 @@ impl Environment {
         }
     }
 
+    pub fn argv(&self) -> &Vec<String> {
+        &self.argv
+    }
+
     pub fn working_dir(&self) -> &PathBuf {
         &self.working_dir
     }
@@ -73,6 +77,13 @@ mod tests {
 
         assert_eq!(environment.argv, vec!["sh"]);
         assert_eq!(environment.rootfs, PathBuf::from("rootfs"));
+    }
+
+    #[test]
+    fn environment_argv() {
+        let environment = Environment::new(&["sh"], "rootfs");
+
+        assert_eq!(environment.argv(), &["sh"]);
     }
 
     #[test]
