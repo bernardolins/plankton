@@ -11,7 +11,7 @@ use nix::unistd::Pid;
 use nix::sched::CloneFlags;
 use nix::sys::wait::WaitPidFlag;
 
-use crate::libcontainer::environment::Environment;
+use crate::libcontainer::linux::environment::Environment;
 
 enum ExitCode {
     Create,

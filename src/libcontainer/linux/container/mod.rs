@@ -1,8 +1,9 @@
-mod process;
-mod namespace;
+mod status;
 
-use crate::libcontainer::container::status::Status;
-use crate::libcontainer::environment::Environment;
+use self::status::Status;
+
+use crate::libcontainer::linux::process;
+use crate::libcontainer::linux::environment::Environment;
 
 #[derive(Debug)]
 pub struct Container {
