@@ -1,5 +1,6 @@
 use super::Namespace;
 
+#[derive(Debug)]
 pub struct NamespaceList {
     list: Vec<Namespace>
 }
@@ -9,6 +10,10 @@ impl NamespaceList {
         NamespaceList {
             list: vec![]
         }
+    }
+
+    pub fn as_vec(&self) -> &Vec<Namespace> {
+        &self.list
     }
 
     pub fn insert(&mut self, other: Namespace) {

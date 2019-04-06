@@ -1,5 +1,8 @@
 use std::path::PathBuf;
 
+use crate::libcontainer::linux::namespace::Namespace;
+use crate::libcontainer::linux::namespace::NamespaceList;
+
 const DEFAULT_WORKING_DIR: &str = "/";
 
 #[derive(Debug)]
@@ -8,6 +11,7 @@ pub struct Environment {
     rootfs: PathBuf,
     working_dir: PathBuf,
     hostname: Option<String>,
+    namespaces: NamespaceList,
 }
 
 impl Environment {
@@ -17,6 +21,7 @@ impl Environment {
             rootfs: PathBuf::from(rootfs),
             working_dir: PathBuf::from(DEFAULT_WORKING_DIR),
             hostname: None,
+            namespaces: NamespaceList::empty(),
         }
     }
 
@@ -32,6 +37,10 @@ impl Environment {
         &self.hostname
     }
 
+    pub fn namespaces(&self) -> &NamespaceList {
+        &self.namespaces
+    }
+
     pub fn set_working_dir(&mut self, working_dir: &str) -> Result<(), Error> {
         let cwd = PathBuf::from(working_dir);
 
@@ -45,6 +54,10 @@ impl Environment {
 
     pub fn set_hostname(&mut self, hostname: &str) {
         self.hostname = Some(String::from(hostname));
+    }
+
+    pub fn set_namespaces(&mut self, ns_list: NamespaceList) {
+        self.namespaces = ns_list;
     }
 
 }
@@ -71,6 +84,10 @@ mod tests {
 
     use std::path::PathBuf;
 
+    use crate::libcontainer::linux::namespace::Namespace;
+    use crate::libcontainer::linux::namespace::NamespaceList;
+    use crate::libcontainer::linux::namespace::NamespaceType;
+
     #[test]
     fn environment_new() {
         let environment = Environment::new(&["sh"], "rootfs");
@@ -91,6 +108,13 @@ mod tests {
         let environment = Environment::new(&["sh"], "rootfs");
 
         assert_eq!(environment.working_dir(), &PathBuf::from("/"));
+    }
+
+    #[test]
+    fn environment_namespaces_defaults_to_empty_list() {
+        let environment = Environment::new(&["sh"], "rootfs");
+
+        assert_eq!(environment.namespaces().as_vec().len(), 0);
     }
 
     #[test]
@@ -125,5 +149,16 @@ mod tests {
         environment.set_hostname("test");
         assert_eq!(environment.hostname(), &Some("test".to_string()));
 
+    }
+
+    #[test]
+    fn environment_set_namespaces() {
+        let mut environment = Environment::new(&["sh"], "rootfs");
+
+        let mut namespaces = NamespaceList::empty();
+        namespaces.insert(Namespace::new(NamespaceType::PID, None));
+
+        environment.set_namespaces(namespaces);
+        assert_eq!(environment.namespaces().as_vec().len(), 1);
     }
 }
