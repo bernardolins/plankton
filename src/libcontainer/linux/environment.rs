@@ -30,6 +30,10 @@ impl Environment {
         &self.argv
     }
 
+    pub fn rootfs(&self) -> &PathBuf {
+        &self.rootfs
+    }
+
     pub fn working_dir(&self) -> &PathBuf {
         &self.working_dir
     }

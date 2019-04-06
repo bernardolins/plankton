@@ -16,6 +16,7 @@ use crate::libcontainer::linux::environment::Environment;
 enum ExitCode {
     Create,
     Wait,
+    Rootfs,
     SetWorkingDir,
     SetHostname,
     Exec,
@@ -43,12 +44,19 @@ pub fn wait(pid: i32) {
 fn child(environment: &Environment) -> isize {
     println!("child pid: {}", unistd::getpid().as_raw());
 
+    try_set_chroot(environment.rootfs());
     try_set_working_dir(environment.working_dir());
     try_set_hostname(environment.hostname());
 
     try_exec(environment.argv());
 
     return 0;
+}
+
+fn try_set_chroot(rootfs: &PathBuf) {
+    if let Err(err) = unistd::chroot(rootfs) {
+        exit("error setting container root", ExitCode::Rootfs, Box::new(err));
+    }
 }
 
 fn try_set_working_dir(working_dir: &PathBuf) {
