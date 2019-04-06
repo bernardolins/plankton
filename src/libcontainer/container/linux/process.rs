@@ -1,5 +1,7 @@
+use std::env;
 use std::process;
 use std::ffi::CString;
+use std::path::PathBuf;
 
 use nix::sched;
 use nix::sys::wait;
@@ -33,5 +35,17 @@ pub fn wait(pid: i32) {
 }
 
 fn child(environment: &Environment) -> isize {
+    try_set_working_dir(environment.working_dir());
+
     return 0;
+}
+
+fn try_set_working_dir(working_dir: &PathBuf) {
+    match env::set_current_dir(working_dir) {
+        Ok(_) => (),
+        Err(err) => {
+            eprintln!("error setting container working dir: {}", err);
+            process::exit(-1);
+        }
+    }
 }
