@@ -4,6 +4,7 @@ use std::ffi::CString;
 use std::path::PathBuf;
 
 use nix::sched;
+use nix::unistd;
 use nix::sys::wait;
 use nix::unistd::Pid;
 use nix::sched::CloneFlags;
@@ -36,6 +37,7 @@ pub fn wait(pid: i32) {
 
 fn child(environment: &Environment) -> isize {
     try_set_working_dir(environment.working_dir());
+    try_exec(environment.argv());
 
     return 0;
 }
@@ -45,6 +47,32 @@ fn try_set_working_dir(working_dir: &PathBuf) {
         Ok(_) => (),
         Err(err) => {
             eprintln!("error setting container working dir: {}", err);
+            process::exit(-1);
+        }
+    }
+}
+
+fn try_exec(argv: &Vec<String>) {
+    let args: Vec<CString> = argv.iter().map(|arg|
+        try_turn_to_cstring(&arg)
+    ).collect();
+
+    let path = args[0].clone();
+
+    match unistd::execvp(&path, &args) {
+        Ok(_) => (),
+        Err(err) => {
+            eprintln!("exec error: {}", err);
+            process::exit(-1);
+        }
+    }
+}
+
+fn try_turn_to_cstring(arg: &str) -> CString {
+    match CString::new(arg.to_string()) {
+        Ok(cstring) => cstring,
+        Err(err) => {
+            eprintln!("error parsing arg: {}", err);
             process::exit(-1);
         }
     }
