@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use crate::libcontainer::linux::namespace::Namespace;
+use crate::libcontainer::linux::namespace::NamespaceType;
 use crate::libcontainer::linux::namespace::NamespaceList;
 
 const DEFAULT_WORKING_DIR: &str = "/";
@@ -52,8 +53,13 @@ impl Environment {
         }
     }
 
-    pub fn set_hostname(&mut self, hostname: &str) {
-        self.hostname = Some(String::from(hostname));
+    pub fn set_hostname(&mut self, hostname: &str) -> Result<(), Error> {
+        if self.namespaces.contains_type(NamespaceType::UTS) {
+            self.hostname = Some(String::from(hostname));
+            Ok(())
+        } else {
+            Err(Error::Hostname)
+        }
     }
 
     pub fn set_namespaces(&mut self, ns_list: NamespaceList) {
@@ -72,7 +78,7 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let message = match *self {
             Error::WorkingDir => "container working dir must be a valid absolute path",
-            Error::Hostname => "container needs a private namespace in order to set hostname",
+            Error::Hostname => "container needs a private UTS namespace in order to set hostname",
         };
         write!(f, "{}", message)
     }
