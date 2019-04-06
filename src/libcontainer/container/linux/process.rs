@@ -13,6 +13,14 @@ use nix::sys::wait::WaitPidFlag;
 
 use crate::libcontainer::environment::Environment;
 
+enum ExitCode {
+    Create,
+    Wait,
+    SetWorkingDir,
+    SetHostname,
+    Exec,
+}
+
 pub fn create(environment: &Environment) -> i32 {
     let stack = &mut[0; 1024*1024];
     let exec_fn = Box::new(|| child(&environment));
@@ -20,24 +28,24 @@ pub fn create(environment: &Environment) -> i32 {
     match sched::clone(exec_fn, stack, CloneFlags::empty(), None) {
         Ok(pid) => pid.as_raw(),
         Err(err) => {
-            eprintln!("clone error: {}", err);
-            process::exit(-1);
+            exit("clone error", ExitCode::Create, Box::new(err));
+            return 0;
         }
     }
 }
 
 pub fn wait(pid: i32) {
-    match wait::waitpid(Pid::from_raw(pid), Some(WaitPidFlag::__WALL)) {
-        Ok(_) => (),
-        Err(err) => {
-            eprintln!("wait error: {}", err);
-            process::exit(-1);
-        }
+    if let Err(err) = wait::waitpid(Pid::from_raw(pid), Some(WaitPidFlag::__WALL)) {
+        exit("wait error", ExitCode::Wait, Box::new(err));
     }
 }
 
 fn child(environment: &Environment) -> isize {
+    println!("child pid: {}", unistd::getpid().as_raw());
+
     try_set_working_dir(environment.working_dir());
+    try_set_hostname(environment.hostname());
+
     try_exec(environment.argv());
 
     return 0;
@@ -45,7 +53,7 @@ fn child(environment: &Environment) -> isize {
 
 fn try_set_working_dir(working_dir: &PathBuf) {
     if let Err(err) = env::set_current_dir(working_dir) {
-       exit("error setting container working dir", -1, Box::new(err));
+       exit("error setting container working dir", ExitCode::SetWorkingDir, Box::new(err));
     }
 }
 
@@ -56,11 +64,19 @@ fn try_exec(argv: &Vec<String>) {
     let path = args[0].clone();
 
     if let Err(err) = unistd::execvp(&path, &args) {
-        exit("exec error", -2, Box::new(err));
+        exit("exec error", ExitCode::Exec, Box::new(err));
     }
 }
 
-fn exit(message: &str, code: i32, err: Box<Error>) {
+fn try_set_hostname(option_hostname: &Option<String>) {
+    if let Some(hostname) = option_hostname {
+        if let Err(err) = unistd::sethostname(hostname) {
+           exit("error setting container hostname", ExitCode::SetHostname, Box::new(err));
+        }
+    }
+}
+
+fn exit(message: &str, code: ExitCode, err: Box<Error>) {
     eprintln!("{}: {}", message, err);
-    process::exit(code);
+    process::exit(code as i32);
 }
