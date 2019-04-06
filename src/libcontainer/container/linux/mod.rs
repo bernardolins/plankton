@@ -1,4 +1,5 @@
 mod process;
+mod namespace;
 
 use crate::libcontainer::container::status::Status;
 use crate::libcontainer::environment::Environment;
