@@ -1,5 +1,6 @@
 use std::env;
 use std::process;
+use std::error::Error;
 use std::ffi::CString;
 use std::path::PathBuf;
 
@@ -43,37 +44,23 @@ fn child(environment: &Environment) -> isize {
 }
 
 fn try_set_working_dir(working_dir: &PathBuf) {
-    match env::set_current_dir(working_dir) {
-        Ok(_) => (),
-        Err(err) => {
-            eprintln!("error setting container working dir: {}", err);
-            process::exit(-1);
-        }
+    if let Err(err) = env::set_current_dir(working_dir) {
+       exit("error setting container working dir", -1, Box::new(err));
     }
 }
 
 fn try_exec(argv: &Vec<String>) {
     let args: Vec<CString> = argv.iter().map(|arg|
-        try_turn_to_cstring(&arg)
+        CString::new(arg.to_string()).expect("error parsing argument")
     ).collect();
-
     let path = args[0].clone();
 
-    match unistd::execvp(&path, &args) {
-        Ok(_) => (),
-        Err(err) => {
-            eprintln!("exec error: {}", err);
-            process::exit(-1);
-        }
+    if let Err(err) = unistd::execvp(&path, &args) {
+        exit("exec error", -2, Box::new(err));
     }
 }
 
-fn try_turn_to_cstring(arg: &str) -> CString {
-    match CString::new(arg.to_string()) {
-        Ok(cstring) => cstring,
-        Err(err) => {
-            eprintln!("error parsing arg: {}", err);
-            process::exit(-1);
-        }
-    }
+fn exit(message: &str, code: i32, err: Box<Error>) {
+    eprintln!("{}: {}", message, err);
+    process::exit(code);
 }
