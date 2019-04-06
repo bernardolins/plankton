@@ -22,6 +22,10 @@ impl Container {
     }
 
     pub fn run(&mut self) {
+        for namespace in self.environment.namespaces().as_vec() {
+            namespace.enter();
+        }
+
         let init_pid = process::create(&self.environment);
 
         self.init_pid = Some(init_pid);
