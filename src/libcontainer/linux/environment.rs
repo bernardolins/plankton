@@ -1,3 +1,5 @@
+use std::env;
+use std::ffi::OsStr;
 use std::path::PathBuf;
 
 use crate::libcontainer::linux::namespace::Namespace;
@@ -70,12 +72,26 @@ impl Environment {
         self.namespaces = ns_list;
     }
 
+
+    pub fn set_env_var(&self, k: &str, v: &str) -> Result<(), Error> {
+        let key = OsStr::new(k);
+        let val = OsStr::new(v);
+
+        if key.is_empty() {
+            return Err(Error::EnvVar);
+        } else {
+            env::set_var(key, val);
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
     WorkingDir,
     Hostname,
+    EnvVar,
 }
 
 impl std::fmt::Display for Error {
@@ -83,6 +99,7 @@ impl std::fmt::Display for Error {
         let message = match *self {
             Error::WorkingDir => "container working dir must be a valid absolute path",
             Error::Hostname => "container needs a private UTS namespace in order to set hostname",
+            Error::EnvVar => "wrong environment variable format",
         };
         write!(f, "{}", message)
     }
@@ -149,7 +166,6 @@ mod tests {
     fn environment_hostname_defaults_to_none() {
         let environment = Environment::new(&["sh"], "rootfs");
         assert!(&environment.hostname().is_none());
-
     }
 
     #[test]
@@ -172,5 +188,14 @@ mod tests {
 
         environment.set_namespaces(namespaces);
         assert_eq!(environment.namespaces().as_vec().len(), 1);
+    }
+
+    #[test]
+    fn environment_set_env_var() {
+        let environment = Environment::new(&["sh"], "rootfs");
+
+        environment.set_env_var("MY_VAR", "some_value").unwrap();
+
+        assert_eq!(std::env::var("MY_VAR").unwrap(), "some_value");
     }
 }
