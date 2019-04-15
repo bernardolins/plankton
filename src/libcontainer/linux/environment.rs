@@ -153,11 +153,13 @@ mod tests {
     }
 
     #[test]
-    fn environment_set_hostname() {
+    fn environment_set_hostname_returns_error_without_uts_namespace() {
         let mut environment = Environment::new(&["sh"], "rootfs");
 
-        environment.set_hostname("test");
-        assert_eq!(environment.hostname(), &Some("test".to_string()));
+        let set_hostname_result = environment.set_hostname("test");
+
+        assert!(set_hostname_result.is_err());
+        assert_eq!(environment.hostname(), &None);
 
     }
 
