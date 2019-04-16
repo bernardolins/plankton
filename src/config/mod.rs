@@ -9,25 +9,25 @@ use serde::{Serialize, Deserialize};
 
 use crate::error::Error;
 
-pub fn load(config_path: &PathBuf) -> Result<Base, Error> {
-    let file = File::open(&config_path)?;
-    let reader = BufReader::new(file);
-    let spec: Base = serde_json::from_reader(reader)?;
-    Ok(spec)
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Base {
+pub struct Config {
     oci_version: String,
     hostname: Option<String>,
     root: root::Root,
     process: process::Process
 }
 
-impl Base {
+impl Config {
     pub fn hostname(&self) -> &Option<String> { &self.hostname }
     pub fn oci_version(&self) -> &str { &self.oci_version }
     pub fn root(&self) -> &root::Root { &self.root }
     pub fn process(&self) -> &process::Process { &self.process }
+
+    pub fn load(config_path: &PathBuf) -> Result<Config, Error> {
+        let file = File::open(&config_path)?;
+        let reader = BufReader::new(file);
+        let spec: Config = serde_json::from_reader(reader)?;
+        Ok(spec)
+    }
 }
