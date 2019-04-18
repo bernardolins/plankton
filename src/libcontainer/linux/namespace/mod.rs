@@ -1,3 +1,4 @@
+pub mod error;
 pub mod r#type;
 pub mod list;
 
@@ -5,6 +6,7 @@ use nix::sched;
 use std::process;
 use nix::sched::CloneFlags;
 
+pub use self::error::Error;
 pub use self::r#type::NamespaceType;
 pub use self::list::NamespaceList;
 
