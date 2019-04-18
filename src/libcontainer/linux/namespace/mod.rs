@@ -3,7 +3,6 @@ pub mod r#type;
 pub mod list;
 
 use nix::sched;
-use std::process;
 use nix::sched::CloneFlags;
 
 pub use self::error::Error;
@@ -24,27 +23,24 @@ impl Namespace {
         }
     }
 
-    pub fn enter(&self) {
+    pub fn enter(&self) -> Result<(), Error> {
+        if let None = self.path { sched::unshare(self.unshare_flags())?; }
+        Ok(())
+    }
+
+    fn unshare_flags(&self) -> CloneFlags {
         let mut flags = CloneFlags::empty();
-
-        if let None = self.path {
-            match self.r#type {
-                NamespaceType::PID => flags.insert(CloneFlags::CLONE_NEWPID),
-                NamespaceType::UTS => flags.insert(CloneFlags::CLONE_NEWUTS),
-                NamespaceType::IPC => flags.insert(CloneFlags::CLONE_NEWIPC),
-                NamespaceType::USER => flags.insert(CloneFlags::CLONE_NEWUSER),
-                NamespaceType::MOUNT => flags.insert(CloneFlags::CLONE_NEWNS),
-                NamespaceType::CGROUP => flags.insert(CloneFlags::CLONE_NEWCGROUP),
-                NamespaceType::NETWORK => flags.insert(CloneFlags::CLONE_NEWNET),
-            }
-
-            if let Err(err) = sched::unshare(flags) {
-                eprintln!("could not create {:?} namespace: {}", self.r#type, err);
-                process::exit(-4);
-            }
-        } else {
-            //nsenter
+        match self.r#type {
+            NamespaceType::PID => flags.insert(CloneFlags::CLONE_NEWPID),
+            NamespaceType::UTS => flags.insert(CloneFlags::CLONE_NEWUTS),
+            NamespaceType::IPC => flags.insert(CloneFlags::CLONE_NEWIPC),
+            NamespaceType::USER => flags.insert(CloneFlags::CLONE_NEWUSER),
+            NamespaceType::MOUNT => flags.insert(CloneFlags::CLONE_NEWNS),
+            NamespaceType::CGROUP => flags.insert(CloneFlags::CLONE_NEWCGROUP),
+            NamespaceType::NETWORK => flags.insert(CloneFlags::CLONE_NEWNET),
         }
+
+        flags
     }
 }
 

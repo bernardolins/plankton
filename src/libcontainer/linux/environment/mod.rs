@@ -63,7 +63,7 @@ impl Environment {
     }
 
     pub fn set_hostname(&mut self, hostname: &str) -> Result<(), Error> {
-        if self.namespaces.contains_type(NamespaceType::UTS) {
+        if self.namespaces.contains_type(&NamespaceType::UTS) {
             self.hostname = Some(String::from(hostname));
             Ok(())
         } else {
@@ -169,7 +169,7 @@ mod tests {
         let mut environment = Environment::new(&["sh"], "rootfs");
 
         let mut namespaces = NamespaceList::empty();
-        namespaces.insert(Namespace::new(NamespaceType::PID, None));
+        namespaces.insert(Namespace::new(NamespaceType::PID, None)).unwrap();
 
         environment.set_namespaces(namespaces);
         assert_eq!(environment.namespaces().as_vec().len(), 1);

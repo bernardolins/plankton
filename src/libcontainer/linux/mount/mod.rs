@@ -40,9 +40,6 @@ impl MountPoint {
 mod tests {
     use super::*;
 
-    use std::env;
-    use std::path::PathBuf;
-
     #[test]
     fn mount_point_create_returns_mountpoint() {
         let mount_point = MountPoint::create(Some("/tmp"), "/tmp", Some("tmpfs"));
