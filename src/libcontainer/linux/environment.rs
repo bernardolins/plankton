@@ -2,7 +2,6 @@ use std::env;
 use std::ffi::OsStr;
 use std::path::PathBuf;
 
-use crate::libcontainer::linux::namespace::Namespace;
 use crate::libcontainer::linux::namespace::NamespaceType;
 use crate::libcontainer::linux::namespace::NamespaceList;
 

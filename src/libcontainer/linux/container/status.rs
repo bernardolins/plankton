@@ -2,6 +2,4 @@
 pub enum Status {
     Creating,
     Created,
-    Running,
-    Stopped,
 }

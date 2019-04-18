@@ -1,7 +1,6 @@
 pub mod error;
 
 use nix::mount;
-use nix::mount::MsFlags;
 
 use self::error::Error;
 

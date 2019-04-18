@@ -10,8 +10,8 @@ fn main() {
 
     if let Some(matches) = matches.subcommand_matches("run") {
         let current_dir = str_current_dir();
-        let container_id = matches.value_of("container-id").unwrap();
-        let bundle_path = matches.value_of("bundle").unwrap_or(&current_dir);
+        let _container_id = matches.value_of("container-id").unwrap();
+        let _bundle_path = matches.value_of("bundle").unwrap_or(&current_dir);
     }
 }
 
