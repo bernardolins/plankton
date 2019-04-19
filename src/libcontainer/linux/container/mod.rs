@@ -2,6 +2,7 @@ mod status;
 
 use self::status::Status;
 
+use crate::libcontainer::Error;
 use crate::libcontainer::linux::process;
 use crate::libcontainer::linux::environment::Environment;
 
@@ -21,9 +22,9 @@ impl Container {
         }
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<(), Error> {
         for namespace in self.environment.namespaces().as_vec() {
-            namespace.enter();
+            namespace.enter()?;
         }
 
         let init_pid = process::create(&self.environment);
@@ -32,6 +33,8 @@ impl Container {
         self.status = Status::Created;
 
         process::wait(init_pid);
+
+        Ok(())
     }
 }
 
@@ -61,8 +64,9 @@ mod tests {
 
         assert_eq!(container.init_pid, None);
 
-        container.run();
+        let result = container.run();
 
+        assert!(result.is_ok(), "expected {:?} to be ok", result);
         assert!(container.init_pid.is_some(), "expect {:?} to be Some", &container.init_pid);
     }
 
@@ -71,8 +75,9 @@ mod tests {
         let environment = Environment::new(&["/usr/bin/cd", "."], "rootfs");
         let mut container = Container::new(environment);
 
-        container.run();
+        let result = container.run();
 
+        assert!(result.is_ok(), "expected {:?} to be ok", result);
         assert_eq!(container.status, Status::Created);
     }
 }

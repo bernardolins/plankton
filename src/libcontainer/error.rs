@@ -1,11 +1,13 @@
 use crate::libcontainer::linux::namespace::Error as NamespaceError;
 use crate::libcontainer::linux::environment::Error as EnvironmentError;
 
+#[derive(Debug, PartialEq)]
 pub struct Error {
     kind: ErrorKind,
     message: String,
 }
 
+#[derive(Debug, PartialEq)]
 enum ErrorKind {
     ENVIRONMENT,
     NAMESPACE,
