@@ -6,7 +6,7 @@ mod common;
 
 use std::io::BufReader;
 
-use cr7::config::root::Root;
+use cr7::libcontainer::config::root::Root;
 
 use common::ConfigTemplate;
 

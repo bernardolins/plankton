@@ -3,8 +3,7 @@ extern crate rand;
 
 mod common;
 
-use cr7::config::Config;
-use cr7::error::Error;
+use cr7::libcontainer::config::Config;
 
 use common::{TestBundle, ConfigTemplate};
 
@@ -15,7 +14,6 @@ fn load_config_file_not_found() {
 
     let config = Config::load(&config_path);
     assert!(config.is_err(), "expect {:?} to be err", config);
-    assert_eq!(config.err().unwrap(), Error::NotFound);
 }
 
 #[test]
@@ -25,7 +23,6 @@ fn load_config_file_with_synxtax_error() {
 
     let config = Config::load(&config_path);
     assert!(config.is_err(), "expect {:?} to be err", config);
-    assert_eq!(config.err().unwrap(), Error::ConfigSyntax);
 }
 
 #[test]
@@ -35,7 +32,6 @@ fn load_config_file_invalid() {
 
     let config = Config::load(&config_path);
     assert!(config.is_err(), "expect {:?} to be err", config);
-    assert_eq!(config.err().unwrap(), Error::ParseConfig);
 }
 
 #[test]
@@ -45,7 +41,6 @@ fn load_config_file_with_no_root() {
 
     let config = Config::load(&config_path);
     assert!(config.is_err(), "expect {:?} to be err", config);
-    assert_eq!(config.err().unwrap(), Error::ParseConfig);
 }
 
 #[test]
@@ -55,7 +50,6 @@ fn load_config_file_with_no_process() {
 
     let config = Config::load(&config_path);
     assert!(config.is_err(), "expect {:?} to be err", config);
-    assert_eq!(config.err().unwrap(), Error::ParseConfig);
 }
 
 #[test]
