@@ -1,5 +1,6 @@
 pub mod root;
 pub mod process;
+pub mod error;
 
 use std::fs::File;
 use std::io::BufReader;
@@ -7,7 +8,7 @@ use std::path::PathBuf;
 
 use serde::{Serialize, Deserialize};
 
-use crate::error::Error;
+pub use self::error::Error;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
