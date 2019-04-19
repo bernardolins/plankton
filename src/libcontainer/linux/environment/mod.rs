@@ -1,4 +1,5 @@
 pub mod error;
+pub mod conv;
 
 use std::env;
 use std::ffi::OsStr;
@@ -21,9 +22,9 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn new(argv: &[&str], rootfs: &str) -> Environment {
+    pub fn new(argv: &[String], rootfs: &str) -> Environment {
         Environment {
-            argv: argv.iter().map(|arg| String::from(*arg)).collect(),
+            argv: argv.to_vec(),
             rootfs: PathBuf::from(rootfs),
             working_dir: PathBuf::from(DEFAULT_WORKING_DIR),
             hostname: None,
