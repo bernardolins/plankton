@@ -16,6 +16,10 @@ impl TryFrom<Config> for Environment {
         let working_dir = config.process().cwd();
         environment.set_working_dir(working_dir)?;
 
+        if let Some(hostname) = config.hostname() {
+            environment.set_hostname(hostname)?;
+        }
+
         Ok(environment)
     }
 }
