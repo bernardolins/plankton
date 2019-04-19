@@ -2,7 +2,7 @@ pub mod error;
 
 use nix::mount;
 
-use self::error::Error;
+pub use self::error::Error;
 
 pub struct MountPoint {
     source: Option<&'static str>,

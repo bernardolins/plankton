@@ -1,3 +1,4 @@
+use crate::libcontainer::linux::mount::Error as MountError;
 use crate::libcontainer::linux::namespace::Error as NamespaceError;
 use crate::libcontainer::linux::environment::Error as EnvironmentError;
 
@@ -9,6 +10,7 @@ pub struct Error {
 
 #[derive(Debug, PartialEq)]
 enum ErrorKind {
+    MOUNT,
     ENVIRONMENT,
     NAMESPACE,
 }
@@ -22,11 +24,21 @@ impl std::fmt::Display for Error {
 impl std::fmt::Display for ErrorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let message = match *self {
+            ErrorKind::MOUNT => "mount error",
             ErrorKind::ENVIRONMENT => "environment error",
             ErrorKind::NAMESPACE => "namespace error",
 
         };
         write!(f, "{}", message)
+    }
+}
+
+impl From<MountError> for Error {
+    fn from(err: MountError) -> Error {
+        Error {
+            kind: ErrorKind::MOUNT,
+            message: format!("{}", err),
+        }
     }
 }
 
