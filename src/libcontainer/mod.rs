@@ -1,3 +1,6 @@
+pub mod error;
+pub use self::error::Error;
+
 #[cfg(target_os = "linux")]
 pub mod linux;
 
