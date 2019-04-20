@@ -5,10 +5,11 @@ use std::env;
 use std::ffi::OsStr;
 use std::path::PathBuf;
 
+use crate::libcontainer::Error;
 use crate::libcontainer::linux::namespace::NamespaceType;
 use crate::libcontainer::linux::namespace::NamespaceList;
 
-pub use self::error::Error;
+pub use self::error::ErrorKind;
 
 const DEFAULT_WORKING_DIR: &str = "/";
 
@@ -59,7 +60,7 @@ impl Environment {
             self.working_dir = cwd;
             Ok(())
         } else {
-            Err(Error::WorkingDir)
+            Err(Error::from(ErrorKind::WorkingDir))
         }
     }
 
@@ -68,7 +69,7 @@ impl Environment {
             self.hostname = Some(String::from(hostname));
             Ok(())
         } else {
-            Err(Error::Hostname)
+            Err(Error::from(ErrorKind::Hostname))
         }
     }
 
@@ -82,7 +83,7 @@ impl Environment {
         let val = OsStr::new(v);
 
         if key.is_empty() {
-            return Err(Error::EnvVar);
+            return Err(Error::from(ErrorKind::EnvVar));
         } else {
             env::set_var(key, val);
         }
