@@ -42,8 +42,6 @@ pub fn wait(pid: i32) {
 }
 
 fn child(environment: &Environment) -> isize {
-    println!("child pid: {}", unistd::getpid().as_raw());
-
     try_set_chroot(environment.rootfs());
     try_set_working_dir(environment.working_dir());
     try_set_hostname(environment.hostname());
