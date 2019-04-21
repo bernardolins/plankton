@@ -1,7 +1,7 @@
 use crate::libcontainer::Error;
 use crate::libcontainer::error::ErrorKind;
 
-use crate::libcontainer::linux::namespace::Error as NamespaceError;
+use crate::libcontainer::linux::namespace::ErrorReason as NamespaceError;
 
 impl From<NamespaceError> for Error {
     fn from(err: NamespaceError) -> Error {

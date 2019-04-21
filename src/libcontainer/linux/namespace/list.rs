@@ -1,4 +1,6 @@
-use super::Error;
+use crate::libcontainer::Error;
+
+use super::ErrorReason;
 use super::Namespace;
 use super::NamespaceType;
 
@@ -20,7 +22,8 @@ impl NamespaceList {
 
     pub fn insert(&mut self, namespace: Namespace) -> Result<(), Error> {
         if self.contains_type(&namespace.r#type) {
-            return Err(Error::DuplicatedNamespace)
+            let reason = ErrorReason::DuplicatedNamespace;
+            return Err(Error::from(reason))
         }
         self.list.push(namespace);
 

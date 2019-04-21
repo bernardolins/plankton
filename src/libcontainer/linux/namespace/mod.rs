@@ -5,7 +5,9 @@ pub mod list;
 use nix::sched;
 use nix::sched::CloneFlags;
 
-pub use self::error::Error;
+use crate::libcontainer::Error;
+
+pub use self::error::ErrorReason;
 pub use self::r#type::NamespaceType;
 pub use self::list::NamespaceList;
 
@@ -24,7 +26,12 @@ impl Namespace {
     }
 
     pub fn enter(&self) -> Result<(), Error> {
-        if let None = self.path { sched::unshare(self.unshare_flags())?; }
+        if let None = self.path {
+            if let Err(error) = sched::unshare(self.unshare_flags()) {
+                let reason = ErrorReason::from(error);
+                return Err(Error::from(reason));
+            };
+        }
         Ok(())
     }
 

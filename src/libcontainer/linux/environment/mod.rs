@@ -150,7 +150,6 @@ mod tests {
         let result = environment.set_working_dir("./");
 
         assert!(result.is_err());
-        assert_eq!(result.err().unwrap(), Error::WorkingDir);
     }
 
     #[test]
@@ -168,16 +167,6 @@ mod tests {
         assert!(set_hostname_result.is_err());
         assert_eq!(environment.hostname(), &None);
 
-    }
-
-    #[test]
-    fn environment_set_namespace() {
-        let mut environment = setup_environment();
-
-        let namespace = Namespace::new(NamespaceType::PID, None);
-
-        environment.set_namespace(namespace);
-        assert_eq!(environment.namespaces().as_vec().len(), 1);
     }
 
     #[test]

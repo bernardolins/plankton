@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq)]
-pub enum Error {
+pub enum ErrorReason {
     DuplicatedNamespace,
     InsufficientMemory,
     InvalidFlags,
@@ -7,26 +7,26 @@ pub enum Error {
     Unknown,
 }
 
-impl std::fmt::Display for Error {
+impl std::fmt::Display for ErrorReason {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let message = match *self {
-            Error::DuplicatedNamespace => "cannot set the same namespace twice",
-            Error::InsufficientMemory => "insufficient memory (ENOMEM)",
-            Error::InvalidFlags => "invalid flags when creating a namespace (EINVAL)",
-            Error::PermissionDenied => "permission denied (EPERM)",
-            Error::Unknown => "unknown error",
+            ErrorReason::DuplicatedNamespace => "cannot set the same namespace twice",
+            ErrorReason::InsufficientMemory => "insufficient memory (ENOMEM)",
+            ErrorReason::InvalidFlags => "invalid flags when creating a namespace (EINVAL)",
+            ErrorReason::PermissionDenied => "permission denied (EPERM)",
+            ErrorReason::Unknown => "unknown error",
         };
         write!(f, "{}", message)
     }
 }
 
-impl From<nix::Error> for Error {
-    fn from(nix_error: nix::Error) -> Error {
+impl From<nix::Error> for ErrorReason {
+    fn from(nix_error: nix::Error) -> ErrorReason {
         match nix_error.as_errno() {
-            Some(nix::errno::Errno::ENOMEM) => Error::InsufficientMemory,
-            Some(nix::errno::Errno::EINVAL) => Error::InvalidFlags,
-            Some(nix::errno::Errno::EPERM) => Error::PermissionDenied,
-            _ => Error::Unknown,
+            Some(nix::errno::Errno::ENOMEM) => ErrorReason::InsufficientMemory,
+            Some(nix::errno::Errno::EINVAL) => ErrorReason::InvalidFlags,
+            Some(nix::errno::Errno::EPERM) => ErrorReason::PermissionDenied,
+            _ => ErrorReason::Unknown,
         }
     }
 }
