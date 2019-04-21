@@ -1,5 +1,6 @@
 #[derive(Debug, PartialEq)]
 pub enum ErrorReason {
+    InvalidNamespaceType,
     DuplicatedNamespace,
     InsufficientMemory,
     InvalidFlags,
@@ -10,6 +11,7 @@ pub enum ErrorReason {
 impl std::fmt::Display for ErrorReason {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let message = match *self {
+            ErrorReason::InvalidNamespaceType => "invalid namespace type",
             ErrorReason::DuplicatedNamespace => "cannot set the same namespace twice",
             ErrorReason::InsufficientMemory => "insufficient memory (ENOMEM)",
             ErrorReason::InvalidFlags => "invalid flags when creating a namespace (EINVAL)",

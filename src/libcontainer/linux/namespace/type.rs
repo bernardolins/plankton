@@ -1,3 +1,6 @@
+use super::error::ErrorReason;
+use crate::libcontainer::Error;
+
 #[derive(Debug, PartialEq)]
 pub enum NamespaceType {
     PID,
@@ -10,16 +13,16 @@ pub enum NamespaceType {
 }
 
 impl NamespaceType {
-    fn from_str(original: &str) -> Option<NamespaceType> {
+    pub fn from_str(original: &str) -> Result<NamespaceType, Error> {
         match original {
-            "pid" => Some(NamespaceType::PID),
-            "uts" => Some(NamespaceType::UTS),
-            "ipc" => Some(NamespaceType::IPC),
-            "user" => Some(NamespaceType::USER),
-            "mount" => Some(NamespaceType::MOUNT),
-            "cgroup" => Some(NamespaceType::CGROUP),
-            "network" => Some(NamespaceType::NETWORK),
-            _ => None,
+            "pid" => Ok(NamespaceType::PID),
+            "uts" => Ok(NamespaceType::UTS),
+            "ipc" => Ok(NamespaceType::IPC),
+            "user" => Ok(NamespaceType::USER),
+            "mount" => Ok(NamespaceType::MOUNT),
+            "cgroup" => Ok(NamespaceType::CGROUP),
+            "network" => Ok(NamespaceType::NETWORK),
+            _ => Err(Error::from(ErrorReason::InvalidNamespaceType)),
         }
     }
 }
@@ -31,19 +34,26 @@ mod tests {
     #[test]
     fn namespace_type_from_str() {
         let table = vec![
-            ("pid", Some(NamespaceType::PID)),
-            ("uts", Some(NamespaceType::UTS)),
-            ("ipc", Some(NamespaceType::IPC)),
-            ("user", Some(NamespaceType::USER)),
-            ("mount", Some(NamespaceType::MOUNT)),
-            ("cgroup", Some(NamespaceType::CGROUP)),
-            ("network", Some(NamespaceType::NETWORK)),
-            ("invalid", None),
+            ("pid", NamespaceType::PID),
+            ("uts", NamespaceType::UTS),
+            ("ipc", NamespaceType::IPC),
+            ("user", NamespaceType::USER),
+            ("mount", NamespaceType::MOUNT),
+            ("cgroup", NamespaceType::CGROUP),
+            ("network", NamespaceType::NETWORK),
         ];
 
-        for (original, result) in table {
-            assert_eq!(NamespaceType::from_str(original), result);
+        for (original, expect) in table {
+            let result = NamespaceType::from_str(original);
+            assert!(result.is_ok(), "expect {:?} to be ok", &result);
+            assert_eq!(result.unwrap(), expect);
         }
+    }
+
+    #[test]
+    fn namespace_type_from_str_returns_error_on_invalid_namespace() {
+        let result = NamespaceType::from_str("invalid");
+        assert!(result.is_err(), "expect {:?} to be ok", result);
     }
 }
 
