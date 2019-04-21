@@ -6,6 +6,7 @@ use std::ffi::OsStr;
 use std::path::PathBuf;
 
 use crate::libcontainer::Error;
+use crate::libcontainer::linux::namespace::Namespace;
 use crate::libcontainer::linux::namespace::NamespaceType;
 use crate::libcontainer::linux::namespace::NamespaceList;
 
@@ -73,8 +74,8 @@ impl Environment {
         }
     }
 
-    pub fn set_namespaces(&mut self, ns_list: NamespaceList) {
-        self.namespaces = ns_list;
+    pub fn set_namespace(&mut self, namespace: Namespace) -> Result<(), Error> {
+        self.namespaces.insert(namespace)
     }
 
 
@@ -99,7 +100,6 @@ mod tests {
     use std::path::PathBuf;
 
     use crate::libcontainer::linux::namespace::Namespace;
-    use crate::libcontainer::linux::namespace::NamespaceList;
     use crate::libcontainer::linux::namespace::NamespaceType;
 
     fn setup_environment() -> Environment {
@@ -167,6 +167,30 @@ mod tests {
         assert!(set_hostname_result.is_err());
         assert_eq!(environment.hostname(), &None);
 
+    }
+
+    #[test]
+    fn environment_set_namespace() {
+        let mut environment = setup_environment();
+        let namespace = Namespace::new(NamespaceType::UTS, None);
+
+        let result = environment.set_namespace(namespace);
+
+        assert!(result.is_ok(), "expect {:?} to be ok", result);
+    }
+
+    #[test]
+    fn environment_cant_set_same_namespace_twice() {
+        let mut environment = setup_environment();
+
+        let namespace1 = Namespace::new(NamespaceType::UTS, None);
+        let namespace2 = Namespace::new(NamespaceType::UTS, None);
+
+        let result1 = environment.set_namespace(namespace1);
+        let result2 = environment.set_namespace(namespace2);
+
+        assert!(result1.is_ok(), "expect {:?} to be ok", result1);
+        assert!(result2.is_err(), "expect {:?} to be err", result2);
     }
 
     #[test]
