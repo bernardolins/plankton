@@ -1,5 +1,6 @@
 pub mod root;
 pub mod process;
+pub mod mount;
 pub mod error;
 
 #[cfg(target_os = "linux")]
@@ -22,9 +23,9 @@ pub struct Config {
     hostname: Option<String>,
     root: root::Root,
     process: process::Process,
+    mounts: Vec<mount::Mount>,
 
-    #[cfg(target_os = "linux")]
-    linux: linux::Linux,
+    #[cfg(target_os = "linux")] linux: linux::Linux,
 }
 
 impl Config {
@@ -32,6 +33,7 @@ impl Config {
     pub fn oci_version(&self) -> &str { &self.oci_version }
     pub fn root(&self) -> &root::Root { &self.root }
     pub fn process(&self) -> &process::Process { &self.process }
+    pub fn mounts(&self) -> &Vec<mount::Mount> { &self.mounts }
 
 
     #[cfg(target_os = "linux")]
