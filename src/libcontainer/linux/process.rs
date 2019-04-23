@@ -11,12 +11,14 @@ use nix::unistd::Pid;
 use nix::sched::CloneFlags;
 use nix::sys::wait::WaitPidFlag;
 
+use crate::libcontainer::linux::mount::MountPoint;
 use crate::libcontainer::linux::environment::Environment;
 
 enum ExitCode {
     Create,
     Wait,
     Rootfs,
+    Mount,
     SetWorkingDir,
     SetHostname,
     Exec,
@@ -43,6 +45,7 @@ pub fn wait(pid: i32) {
 
 fn child(environment: &Environment) -> isize {
     try_set_chroot(environment.rootfs());
+    try_mount(environment.mount_list());
     try_set_working_dir(environment.working_dir());
     try_set_hostname(environment.hostname());
 
@@ -54,6 +57,14 @@ fn child(environment: &Environment) -> isize {
 fn try_set_chroot(rootfs: &PathBuf) {
     if let Err(err) = unistd::chroot(rootfs) {
         exit("error setting container root", ExitCode::Rootfs, Box::new(err));
+    }
+}
+
+fn try_mount(mount_list: &Vec<MountPoint>) {
+    for mount_point in mount_list {
+        if let Err(err) = mount_point.mount() {
+            exit("mount error", ExitCode::Mount, Box::new(err));
+        }
     }
 }
 

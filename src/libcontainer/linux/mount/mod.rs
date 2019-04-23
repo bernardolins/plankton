@@ -4,6 +4,7 @@ use nix::mount;
 
 pub use self::error::Error;
 
+#[derive(Debug)]
 pub struct MountPoint {
     source: Option<&'static str>,
     destination: &'static str,
