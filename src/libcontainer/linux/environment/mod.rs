@@ -6,6 +6,7 @@ use std::ffi::OsStr;
 use std::path::PathBuf;
 
 use crate::libcontainer::Error;
+use crate::libcontainer::linux::mount::MountPoint;
 use crate::libcontainer::linux::namespace::Namespace;
 use crate::libcontainer::linux::namespace::NamespaceType;
 use crate::libcontainer::linux::namespace::NamespaceList;
@@ -21,6 +22,7 @@ pub struct Environment {
     working_dir: PathBuf,
     hostname: Option<String>,
     namespaces: NamespaceList,
+    mount_list: Vec<MountPoint>,
 }
 
 impl Environment {
@@ -31,6 +33,7 @@ impl Environment {
             working_dir: PathBuf::from(DEFAULT_WORKING_DIR),
             hostname: None,
             namespaces: NamespaceList::empty(),
+            mount_list: Vec::new(),
         }
     }
 
@@ -52,6 +55,10 @@ impl Environment {
 
     pub fn namespaces(&self) -> &NamespaceList {
         &self.namespaces
+    }
+
+    pub fn mount_list(&self) -> &Vec<MountPoint> {
+        &self.mount_list
     }
 
     pub fn set_working_dir(&mut self, working_dir: &str) -> Result<(), Error> {
@@ -90,6 +97,10 @@ impl Environment {
         }
 
         Ok(())
+    }
+
+    pub fn add_mount_point(&mut self, mount_point: MountPoint) {
+        self.mount_list.push(mount_point);
     }
 }
 
@@ -133,6 +144,14 @@ mod tests {
         let environment = setup_environment();
 
         assert_eq!(environment.namespaces().as_vec().len(), 0);
+    }
+
+    #[test]
+    fn environment_mount_list_defaults_to_empty_list() {
+        let environment = setup_environment();
+        let mount_list = environment.mount_list();
+
+        assert!(mount_list.is_empty(), "expect {:?} to be empty", mount_list);
     }
 
     #[test]
@@ -200,5 +219,15 @@ mod tests {
         environment.set_env_var("MY_VAR", "some_value").unwrap();
 
         assert_eq!(std::env::var("MY_VAR").unwrap(), "some_value");
+    }
+
+    #[test]
+    fn environment_add_mount_point() {
+        let mut environment = setup_environment();
+        let mount_point = MountPoint::create(Some("/tmp"), "/tmp", Some("tmpfs"));
+
+        environment.add_mount_point(mount_point);
+
+        assert_eq!(environment.mount_list().len(), 1);
     }
 }

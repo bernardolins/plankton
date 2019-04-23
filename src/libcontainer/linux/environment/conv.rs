@@ -5,12 +5,16 @@ use super::Environment;
 use crate::libcontainer::Config;
 use crate::libcontainer::Namespace;
 use crate::libcontainer::NamespaceType;
+use crate::libcontainer::MountPoint;
 use crate::libcontainer::error::Error;
 
 impl TryFrom<Config> for Environment {
     type Error = Error;
 
     fn try_from(config: Config) -> Result<Self, Self::Error> {
+        let boxed_config: Box<Config> = Box::new(config);
+        let config = Box::leak(boxed_config);
+
         let argv = config.process().args();
         let rootfs = config.root().path();
         let mut environment = Environment::new(&argv[..], rootfs);
@@ -32,6 +36,15 @@ impl TryFrom<Config> for Environment {
 
         if let Some(hostname) = config.hostname() {
             environment.set_hostname(hostname)?;
+        }
+
+        for mount in config.mounts() {
+            let source = mount.source();
+            let destination = mount.destination();
+            let filesystem_type = mount.filesystem_type();
+
+            let mount_point = MountPoint::create(source, destination, filesystem_type);
+            environment.add_mount_point(mount_point);
         }
 
         Ok(environment)
