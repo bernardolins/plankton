@@ -1,6 +1,7 @@
 use std::env;
 use std::process;
 use std::error::Error;
+use std::ffi::OsStr;
 use std::ffi::CString;
 use std::path::PathBuf;
 
@@ -45,7 +46,8 @@ pub fn wait(pid: i32) {
 
 fn child(environment: &Environment) -> isize {
     try_set_chroot(environment.rootfs());
-    try_mount(environment.mount_list());
+    try_set_env_vars(environment.env_vars());
+    try_set_mount_points(environment.mount_list());
     try_set_working_dir(environment.working_dir());
     try_set_hostname(environment.hostname());
 
@@ -54,13 +56,22 @@ fn child(environment: &Environment) -> isize {
     return 0;
 }
 
+fn try_set_env_vars(env_vars: &Vec<(String, String)>) {
+    for (key, val) in env_vars {
+        let k = OsStr::new(key);
+        let v = OsStr::new(val);
+
+        env::set_var(k, v);
+    }
+}
+
 fn try_set_chroot(rootfs: &PathBuf) {
     if let Err(err) = unistd::chroot(rootfs) {
         exit("error setting container root", ExitCode::Rootfs, Box::new(err));
     }
 }
 
-fn try_mount(mount_list: &Vec<MountPoint>) {
+fn try_set_mount_points(mount_list: &Vec<MountPoint>) {
     for mount_point in mount_list {
         if let Err(err) = mount_point.mount() {
             exit("mount error", ExitCode::Mount, Box::new(err));
