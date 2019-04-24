@@ -22,6 +22,12 @@ impl TryFrom<Config> for Environment {
         let working_dir = config.process().cwd();
         environment.set_working_dir(working_dir)?;
 
+        if let Some(env_vars) = config.process().env() {
+            for env_var in env_vars {
+                environment.add_env_var(env_var)?;
+            }
+        }
+
         for namespace_config in config.namespaces() {
             let str_type = namespace_config.ns_type();
             let path = match namespace_config.path() {

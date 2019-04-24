@@ -1,8 +1,6 @@
 pub mod error;
 pub mod conv;
 
-use std::env;
-use std::ffi::OsStr;
 use std::path::PathBuf;
 
 use crate::libcontainer::Error;
@@ -23,6 +21,7 @@ pub struct Environment {
     hostname: Option<String>,
     namespaces: NamespaceList,
     mount_list: Vec<MountPoint>,
+    env_vars: Vec<(String, String)>,
 }
 
 impl Environment {
@@ -34,6 +33,7 @@ impl Environment {
             hostname: None,
             namespaces: NamespaceList::empty(),
             mount_list: Vec::new(),
+            env_vars: Vec::new(),
         }
     }
 
@@ -61,6 +61,10 @@ impl Environment {
         &self.mount_list
     }
 
+    pub fn env_vars(&self) -> &Vec<(String, String)> {
+        &self.env_vars
+    }
+
     pub fn set_working_dir(&mut self, working_dir: &str) -> Result<(), Error> {
         let cwd = PathBuf::from(working_dir);
 
@@ -85,22 +89,27 @@ impl Environment {
         self.namespaces.insert(namespace)
     }
 
-
-    pub fn set_env_var(&self, k: &str, v: &str) -> Result<(), Error> {
-        let key = OsStr::new(k);
-        let val = OsStr::new(v);
-
-        if key.is_empty() {
-            return Err(Error::from(ErrorKind::EnvVar));
-        } else {
-            env::set_var(key, val);
-        }
-
-        Ok(())
-    }
-
     pub fn add_mount_point(&mut self, mount_point: MountPoint) {
         self.mount_list.push(mount_point);
+    }
+
+    pub fn add_env_var(&mut self, env_var: &str) -> Result<(), Error> {
+        let mut splitted_env: Vec<&str> = env_var.split("=").collect();
+
+        if splitted_env.len() != 2 {
+            return Err(Error::from(ErrorKind::EnvVar));
+        }
+
+        let k = String::from(splitted_env.remove(0));
+        let v = String::from(splitted_env.remove(0));
+
+        if k.is_empty() {
+            return Err(Error::from(ErrorKind::EnvVar));
+        }
+
+        self.env_vars.push((k, v));
+
+        Ok(())
     }
 }
 
@@ -213,15 +222,6 @@ mod tests {
     }
 
     #[test]
-    fn environment_set_env_var() {
-        let environment = setup_environment();
-
-        environment.set_env_var("MY_VAR", "some_value").unwrap();
-
-        assert_eq!(std::env::var("MY_VAR").unwrap(), "some_value");
-    }
-
-    #[test]
     fn environment_add_mount_point() {
         let mut environment = setup_environment();
         let mount_point = MountPoint::create(Some("/tmp"), "/tmp", Some("tmpfs"));
@@ -229,5 +229,37 @@ mod tests {
         environment.add_mount_point(mount_point);
 
         assert_eq!(environment.mount_list().len(), 1);
+    }
+
+    #[test]
+    fn environment_add_env_var() {
+        let mut environment = setup_environment();
+
+        environment.add_env_var("MY_VAR=some_value").unwrap();
+
+        assert_eq!(environment.env_vars().len(), 1);
+
+        for (key, val) in environment.env_vars() {
+            assert_eq!(key, "MY_VAR");
+            assert_eq!(val, "some_value");
+        }
+    }
+
+    #[test]
+    fn environment_add_env_var_returns_error_with_multiple_equals_to_signs() {
+        let mut environment = setup_environment();
+
+        let result = environment.add_env_var("MY_VAR=some_value=other_value");
+
+        assert!(result.is_err(), "expect {:?} to be err", result);
+    }
+
+    #[test]
+    fn environment_add_env_var_returns_error_with_empty_key() {
+        let mut environment = setup_environment();
+
+        let result = environment.add_env_var("=some_value");
+
+        assert!(result.is_err(), "expect {:?} to be err", result);
     }
 }
