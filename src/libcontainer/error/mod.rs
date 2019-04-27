@@ -12,6 +12,7 @@ pub enum ErrorKind {
     Environment,
     Namespace,
     Config,
+    Rlimit,
 }
 
 impl Error {
