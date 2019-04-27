@@ -8,6 +8,7 @@ clap = {version = "2.32", features = ["yaml"]}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 nix = "0.13.0"
+libc = "0.2.51"
 
 [dev-dependencies]
 tempfile = "3"
