@@ -8,6 +8,9 @@ use crate::libcontainer::NamespaceType;
 use crate::libcontainer::MountPoint;
 use crate::libcontainer::error::Error;
 
+use crate::libcontainer::linux::rlimit::Rlimit;
+use crate::libcontainer::linux::rlimit::ResourceType;
+
 impl TryFrom<Config> for Environment {
     type Error = Error;
 
@@ -51,6 +54,12 @@ impl TryFrom<Config> for Environment {
 
             let mount_point = MountPoint::create(source, destination, filesystem_type);
             environment.add_mount_point(mount_point);
+        }
+
+        for rlimit in config.process().rlimits() {
+            let resource = ResourceType::from_str(rlimit.rl_type())?;
+            let rlim = Rlimit::new(resource, rlimit.soft(), rlimit.hard());
+            environment.add_rlimit(rlim);
         }
 
         Ok(environment)

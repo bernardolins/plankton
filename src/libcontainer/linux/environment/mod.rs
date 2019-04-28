@@ -4,6 +4,7 @@ pub mod conv;
 use std::path::PathBuf;
 
 use crate::libcontainer::Error;
+use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
 use crate::libcontainer::linux::namespace::Namespace;
 use crate::libcontainer::linux::namespace::NamespaceType;
@@ -22,6 +23,7 @@ pub struct Environment {
     namespaces: NamespaceList,
     mount_list: Vec<MountPoint>,
     env_vars: Vec<(String, String)>,
+    rlimits: Vec<Rlimit>,
 }
 
 impl Environment {
@@ -34,6 +36,7 @@ impl Environment {
             namespaces: NamespaceList::empty(),
             mount_list: Vec::new(),
             env_vars: Vec::new(),
+            rlimits: Vec::new(),
         }
     }
 
@@ -63,6 +66,10 @@ impl Environment {
 
     pub fn env_vars(&self) -> &Vec<(String, String)> {
         &self.env_vars
+    }
+
+    pub fn rlimits(&self) -> &Vec<Rlimit> {
+        &self.rlimits
     }
 
     pub fn set_working_dir(&mut self, working_dir: &str) -> Result<(), Error> {
@@ -111,6 +118,10 @@ impl Environment {
 
         Ok(())
     }
+
+    pub fn add_rlimit(&mut self, rlimit: Rlimit) {
+        self.rlimits.push(rlimit);
+    }
 }
 
 #[cfg(test)]
@@ -121,6 +132,9 @@ mod tests {
 
     use crate::libcontainer::linux::namespace::Namespace;
     use crate::libcontainer::linux::namespace::NamespaceType;
+
+    use crate::libcontainer::linux::rlimit::Rlimit;
+    use crate::libcontainer::linux::rlimit::ResourceType;
 
     fn setup_environment() -> Environment {
         Environment::new(&["sh".to_string()], "rootfs")
@@ -161,6 +175,14 @@ mod tests {
         let mount_list = environment.mount_list();
 
         assert!(mount_list.is_empty(), "expect {:?} to be empty", mount_list);
+    }
+
+    #[test]
+    fn environment_rlimits_defaults_to_empty_list() {
+        let environment = setup_environment();
+        let rlimits = environment.rlimits();
+
+        assert!(rlimits.is_empty(), "expect {:?} to be empty", rlimits);
     }
 
     #[test]
@@ -261,5 +283,15 @@ mod tests {
         let result = environment.add_env_var("=some_value");
 
         assert!(result.is_err(), "expect {:?} to be err", result);
+    }
+
+    #[test]
+    fn environment_add_rlimit() {
+        let mut environment = setup_environment();
+        let rlimit = Rlimit::new(ResourceType::RLIMIT_AS, 1024, 1024);
+
+        environment.add_rlimit(rlimit);
+
+        assert_eq!(environment.rlimits().len(), 1);
     }
 }

@@ -1,9 +1,9 @@
-use libc::rlimit;
 use std::io;
 
 use crate::libcontainer::Error;
 
 #[allow(non_camel_case_types)]
+#[derive(Debug)]
 pub enum ResourceType {
    RLIMIT_AS,
    RLIMIT_CORE,
@@ -68,6 +68,7 @@ impl ResourceType {
     }
 }
 
+#[derive(Debug)]
 pub struct Rlimit {
     pub resource: ResourceType,
     pub soft: u64,
@@ -75,6 +76,14 @@ pub struct Rlimit {
 }
 
 impl Rlimit {
+    pub fn new(resource: ResourceType, soft: u64, hard: u64) -> Rlimit {
+        Rlimit {
+            soft: soft,
+            hard: hard,
+            resource: resource,
+        }
+    }
+
     pub fn set(&self) -> Result<(), Error> {
         let mut rlimit = libc::rlimit {
             rlim_cur: self.soft as libc::rlim_t,

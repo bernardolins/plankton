@@ -12,6 +12,7 @@ use nix::unistd::Pid;
 use nix::sched::CloneFlags;
 use nix::sys::wait::WaitPidFlag;
 
+use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
 use crate::libcontainer::linux::environment::Environment;
 
@@ -22,6 +23,7 @@ enum ExitCode {
     Mount,
     SetWorkingDir,
     SetHostname,
+    Rlimit,
     Exec,
 }
 
@@ -50,6 +52,7 @@ fn child(environment: &Environment) -> isize {
     try_set_mount_points(environment.mount_list());
     try_set_working_dir(environment.working_dir());
     try_set_hostname(environment.hostname());
+    try_set_rlimits(environment.rlimits());
 
     try_exec(environment.argv());
 
@@ -82,6 +85,14 @@ fn try_set_mount_points(mount_list: &Vec<MountPoint>) {
 fn try_set_working_dir(working_dir: &PathBuf) {
     if let Err(err) = env::set_current_dir(working_dir) {
        exit("error setting container working dir", ExitCode::SetWorkingDir, Box::new(err));
+    }
+}
+
+fn try_set_rlimits(rlimits: &Vec<Rlimit>) {
+    for rlimit in rlimits {
+        if let Err(err) = rlimit.set() {
+            exit("error setting rlimit", ExitCode::Rlimit, Box::new(err));
+        }
     }
 }
 

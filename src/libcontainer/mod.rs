@@ -11,3 +11,4 @@ pub use self::config::Config;
 #[cfg(target_os = "linux")] pub use self::linux::namespace::NamespaceList;
 #[cfg(target_os = "linux")] pub use self::linux::namespace::NamespaceType;
 #[cfg(target_os = "linux")] pub use self::linux::mount::MountPoint;
+#[cfg(target_os = "linux")] pub use self::linux::rlimit::Rlimit;
