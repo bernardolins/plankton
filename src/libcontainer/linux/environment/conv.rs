@@ -56,10 +56,12 @@ impl TryFrom<Config> for Environment {
             environment.add_mount_point(mount_point);
         }
 
-        for rlimit in config.process().rlimits() {
-            let resource = ResourceType::from_str(rlimit.rl_type())?;
-            let rlim = Rlimit::new(resource, rlimit.soft(), rlimit.hard());
-            environment.add_rlimit(rlim);
+        if let Some(rlimits) = config.process().rlimits() {
+            for rlimit in rlimits {
+                let resource = ResourceType::from_str(rlimit.rl_type())?;
+                let rlim = Rlimit::new(resource, rlimit.soft(), rlimit.hard());
+                environment.add_rlimit(rlim);
+            }
         }
 
         Ok(environment)

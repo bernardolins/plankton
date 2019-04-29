@@ -11,7 +11,7 @@ pub struct Process {
     cwd: String,
 
     #[cfg(target_os = "linux")]
-    rlimits: Vec<rlimit::Rlimit>,
+    rlimits: Option<Vec<rlimit::Rlimit>>,
 }
 
 impl Process {
@@ -20,5 +20,5 @@ impl Process {
     pub fn cwd(&self) -> &str { &self.cwd }
 
     #[cfg(target_os = "linux")]
-    pub fn rlimits(&self) -> &Vec<rlimit::Rlimit> { &self.rlimits }
+    pub fn rlimits(&self) -> &Option<Vec<rlimit::Rlimit>> { &self.rlimits }
 }
