@@ -17,7 +17,7 @@ fn main() {
 
     if let Some(matches) = matches.subcommand_matches("run") {
         let current_dir = str_current_dir();
-        let _container_id = matches.value_of("container-id").unwrap();
+        let container_id = matches.value_of("container-id").unwrap();
         let bundle_path = matches.value_of("bundle").unwrap_or(&current_dir);
 
         let bundle = Bundle::load(&bundle_path).unwrap_or_else(|err| {
@@ -36,7 +36,7 @@ fn main() {
         });
 
 
-        let mut container = Container::new(environment);
+        let mut container = Container::new(container_id, environment);
         container.run().unwrap_or_else(|err| {
             println!("{}", err);
             std::process::exit(4);
