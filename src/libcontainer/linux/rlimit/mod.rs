@@ -1,8 +1,8 @@
-use std::io;
+pub mod error;
 
 use crate::libcontainer::Error;
 
-#[allow(non_camel_case_types)]
+pub use self::error::ErrorReason;
 #[derive(Debug)]
 pub enum ResourceType {
    RLIMIT_AS,
