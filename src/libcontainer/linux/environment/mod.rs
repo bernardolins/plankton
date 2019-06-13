@@ -1,5 +1,4 @@
 pub mod error;
-pub mod conv;
 
 use std::path::PathBuf;
 

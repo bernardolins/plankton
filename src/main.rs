@@ -4,8 +4,8 @@ extern crate cr7;
 
 use clap::App;
 
+use cr7::Config;
 use cr7::bundle::Bundle;
-use cr7::libcontainer::Config;
 use cr7::libcontainer::Container;
 use cr7::libcontainer::Environment;
 

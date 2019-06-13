@@ -5,7 +5,7 @@ mod common;
 
 use std::io::BufReader;
 
-use cr7::libcontainer::config::process::Process;
+use cr7::config::process::Process;
 
 use common::ConfigTemplate;
 

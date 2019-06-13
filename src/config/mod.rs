@@ -6,6 +6,8 @@ pub mod error;
 #[cfg(target_os = "linux")]
 pub mod linux;
 
+mod conv;
+
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;

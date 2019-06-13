@@ -3,7 +3,7 @@ extern crate rand;
 
 mod common;
 
-use cr7::libcontainer::config::Config;
+use cr7::config::Config;
 
 use common::{TestBundle, ConfigTemplate};
 
