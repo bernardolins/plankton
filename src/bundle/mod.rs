@@ -1,28 +1,35 @@
-pub mod error;
+mod error;
 
 use std::path::PathBuf;
-pub use self::error::Error;
+use crate::error::Error;
+use self::error::BundleError;
 
 const CONFIG_FILE_NAME: &str = "config.json";
 
-#[derive(Debug)]
-pub struct Bundle {
-    config: PathBuf,
-    path: PathBuf,
+pub fn config_file_path(path: &str) -> Result<PathBuf, Error> {
+    let bundle_path = load_bundle_path(path)?;
+    let config_path = load_config_file_path(bundle_path)?;
+    Ok(config_path)
 }
 
-impl Bundle {
-    pub fn load(path: &str) -> Result<Bundle, Error> {
-        let bundle_path = PathBuf::from(path).canonicalize()?;
-        let config_path = bundle_path.join(CONFIG_FILE_NAME).canonicalize()?;
-
-        let bundle = Bundle {
-            config: config_path,
-            path: bundle_path,
-        };
-
-        Ok(bundle)
+fn load_bundle_path(path: &str) -> Result<PathBuf, BundleError> {
+    match PathBuf::from(path).canonicalize() {
+        Ok(path) => Ok(path),
+        Err(err) => Err(BundleError{
+            path: String::from(path),
+            message: err.to_string()
+        })
     }
+}
 
-    pub fn config_path(&self) -> &PathBuf { &self.config }
+fn load_config_file_path(bundle_path: PathBuf) -> Result<PathBuf, BundleError> {
+    match bundle_path.join(CONFIG_FILE_NAME).canonicalize() {
+        Ok(path) => Ok(path),
+        Err(err) => {
+            Err(BundleError{
+                path: String::from(CONFIG_FILE_NAME),
+                message: err.to_string()
+            })
+        }
+    }
 }

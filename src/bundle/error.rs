@@ -1,18 +1,12 @@
-#[derive(Debug, PartialEq)]
-pub struct Error {
-    message: String,
+use crate::error::{Error, ErrorKind};
+
+pub struct BundleError {
+    pub path: String,
+    pub message: String,
 }
 
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "bundle error: {}", self.message)
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(io_error: std::io::Error) -> Error {
-        Error {
-            message: format!("{}", io_error),
-        }
+impl From<BundleError> for Error {
+    fn from(bundle_error: BundleError) -> Error {
+        Error::new(ErrorKind::Bundle, &format!("{}: {}", bundle_error.path, bundle_error.message))
     }
 }

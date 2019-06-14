@@ -5,7 +5,7 @@ extern crate cr7;
 use clap::App;
 
 use cr7::Config;
-use cr7::bundle::Bundle;
+use cr7::bundle;
 use cr7::libcontainer::Container;
 use cr7::libcontainer::Environment;
 
@@ -20,12 +20,12 @@ fn main() {
         let container_id = matches.value_of("container-id").unwrap();
         let bundle_path = matches.value_of("bundle").unwrap_or(&current_dir);
 
-        let bundle = Bundle::load(&bundle_path).unwrap_or_else(|err| {
+        let config_file_path = bundle::config_file_path(&bundle_path).unwrap_or_else(|err| {
             eprintln!("{}", err);
             std::process::exit(1);
         });
 
-        let config = Config::load(bundle.config_path()).unwrap_or_else(|err| {
+        let config = Config::load(&config_file_path).unwrap_or_else(|err| {
             eprintln!("{}", err);
             std::process::exit(2);
         });
