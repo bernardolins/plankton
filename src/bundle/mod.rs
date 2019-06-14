@@ -1,16 +1,11 @@
 pub mod error;
 
 use std::path::PathBuf;
-
-use serde::Deserialize;
-use serde::Serialize;
-
 pub use self::error::Error;
 
 const CONFIG_FILE_NAME: &str = "config.json";
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug)]
 pub struct Bundle {
     config: PathBuf,
     path: PathBuf,
