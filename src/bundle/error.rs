@@ -1,12 +1,15 @@
-use crate::error::{Error, ErrorKind};
+use crate::error;
 
-pub struct BundleError {
+pub struct Error {
     pub path: String,
     pub message: String,
 }
 
-impl From<BundleError> for Error {
-    fn from(bundle_error: BundleError) -> Error {
-        Error::new(ErrorKind::Bundle, &format!("{}: {}", bundle_error.path, bundle_error.message))
+impl From<Error> for error::Error {
+    fn from(bundle_error: Error) -> error::Error {
+        error::Error::new(
+            error::ErrorKind::Bundle,
+            &format!("{}: {}", bundle_error.path, bundle_error.message)
+        )
     }
 }
