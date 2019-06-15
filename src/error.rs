@@ -1,18 +1,11 @@
-#[derive(Debug, PartialEq)]
-pub enum ErrorKind {
-    Bundle,
-}
-
 pub struct Error {
     message: String,
-    kind: ErrorKind,
 }
 
 impl Error {
-    pub fn new(kind: ErrorKind, message: &str) -> Error {
+    pub fn new(message: &str) -> Error {
         Error {
             message: String::from(message),
-            kind: kind,
         }
     }
 }
