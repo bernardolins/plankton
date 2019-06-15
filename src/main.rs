@@ -4,6 +4,7 @@ extern crate cr7;
 
 use clap::App;
 
+use cr7::Error;
 use cr7::Config;
 use cr7::bundle;
 use cr7::libcontainer::Container;
@@ -11,7 +12,7 @@ use cr7::libcontainer::Environment;
 
 use std::convert::TryFrom;
 
-fn main() {
+fn main() -> Result<(), Error> {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
 
@@ -20,10 +21,7 @@ fn main() {
         let container_id = matches.value_of("container-id").unwrap();
         let bundle_path = matches.value_of("bundle").unwrap_or(&current_dir);
 
-        let config_file_path = bundle::config_file_path(&bundle_path).unwrap_or_else(|err| {
-            eprintln!("{}", err);
-            std::process::exit(1);
-        });
+        let config_file_path = bundle::config_file_path(&bundle_path)?;
 
         let config = Config::load(&config_file_path).unwrap_or_else(|err| {
             eprintln!("{}", err);
@@ -42,6 +40,8 @@ fn main() {
             std::process::exit(4);
         });
     }
+
+    Ok(())
 }
 
 fn str_current_dir() -> String {
