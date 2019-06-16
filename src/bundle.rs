@@ -1,4 +1,3 @@
-use std::io;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
@@ -7,46 +6,26 @@ use crate::error::Error;
 const CONFIG_FILE_NAME: &str = "config.json";
 
 pub fn read_config(bundle_path: &str) -> Result<BufReader<File>, Error> {
-    let bundle_path = load_bundle_path(bundle_path)?;
-    let config_path = load_config_file_path(bundle_path)?;
-
-    let result = File::open(&config_path);
+    let config = config_file_path(bundle_path)?;
+    let result = File::open(&config);
 
     if result.is_ok() {
         let file = result.unwrap();
         Ok(BufReader::new(file))
     } else {
-        Err(Error::from(Reason::ConfigFile))
+        let file = config.to_str().unwrap_or(CONFIG_FILE_NAME);
+        Err(Error::filesystem_error(file))
     }
 }
 
-enum Reason {
-    ConfigFile,
-    BundlePath,
-}
-
-impl From<Reason> for Error {
-    fn from(reason: Reason) -> Error {
-        let message = match reason {
-            Reason::ConfigFile => format!("{}: {}", CONFIG_FILE_NAME, io::Error::last_os_error()),
-            Reason::BundlePath => format!("bundle: {}", io::Error::last_os_error()),
-        };
-
-        Error::new(&message)
-    }
-}
-
-fn load_bundle_path(bundle_path: &str) -> Result<PathBuf, Reason> {
-    match PathBuf::from(bundle_path).canonicalize() {
+fn config_file_path(path: &str) -> Result<PathBuf, Error> {
+    let config_file_path = PathBuf::from(path).join(CONFIG_FILE_NAME);
+    match config_file_path.canonicalize() {
         Ok(path) => Ok(path),
-        Err(_) => Err(Reason::BundlePath)
-    }
-}
-
-fn load_config_file_path(bundle_path: PathBuf) -> Result<PathBuf, Reason> {
-    match bundle_path.join(CONFIG_FILE_NAME).canonicalize() {
-        Ok(path) => Ok(path),
-        Err(_) => Err(Reason::ConfigFile)
+        Err(_) => {
+            let file = config_file_path.to_str().unwrap_or(CONFIG_FILE_NAME);
+            Err(Error::filesystem_error(file))
+        }
     }
 }
 

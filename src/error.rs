@@ -1,3 +1,5 @@
+use std::io;
+
 pub struct Error {
     message: String,
 }
@@ -6,6 +8,12 @@ impl Error {
     pub fn new(message: &str) -> Error {
         Error {
             message: String::from(message),
+        }
+    }
+
+    pub fn filesystem_error(path: &str) -> Error {
+        Error {
+            message: format!("{}: {}", path, io::Error::last_os_error())
         }
     }
 }
