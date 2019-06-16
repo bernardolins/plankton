@@ -6,26 +6,30 @@ use crate::error::Error;
 const CONFIG_FILE_NAME: &str = "config.json";
 
 pub fn read_config(bundle_path: &str) -> Result<BufReader<File>, Error> {
-    let config = config_file_path(bundle_path)?;
-    let result = File::open(&config);
+    let config_file_path = config_file_path(bundle_path)?;
 
-    if result.is_ok() {
-        let file = result.unwrap();
-        Ok(BufReader::new(file))
-    } else {
-        let file = config.to_str().unwrap_or(CONFIG_FILE_NAME);
-        Err(Error::filesystem_error(file))
-    }
-}
-
-fn config_file_path(path: &str) -> Result<PathBuf, Error> {
-    let config_file_path = PathBuf::from(path).join(CONFIG_FILE_NAME);
-    match config_file_path.canonicalize() {
-        Ok(path) => Ok(path),
+    match File::open(&config_file_path) {
+        Ok(file) => Ok(BufReader::new(file)),
         Err(_) => {
             let file = config_file_path.to_str().unwrap_or(CONFIG_FILE_NAME);
             Err(Error::filesystem_error(file))
         }
+    }
+}
+
+fn config_file_path(path: &str) -> Result<PathBuf, Error> {
+    let bundle_path = PathBuf::from(path);
+
+    if bundle_path.is_dir() {
+        let config_file_path = bundle_path.join(CONFIG_FILE_NAME);
+        if let Ok(path) = config_file_path.canonicalize() {
+            Ok(path)
+        } else {
+            let file = config_file_path.to_str().unwrap_or(CONFIG_FILE_NAME);
+            Err(Error::filesystem_error(file))
+        }
+    } else {
+        Err(Error::filesystem_error(path))
     }
 }
 
