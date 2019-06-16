@@ -1,17 +1,16 @@
 pub mod root;
 pub mod process;
 pub mod mount;
-pub mod error;
 
 mod conv;
 
 #[cfg(target_os = "linux")]
 pub mod linux;
 
+use crate::Error;
 use std::io::BufRead;
 use serde::{Serialize, Deserialize};
 
-pub use self::error::Error;
 pub use self::linux::Namespace;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,6 +45,13 @@ impl Config {
     }
 }
 
+impl From<serde_json::error::Error> for Error {
+    fn from(serde_error: serde_json::error::Error) -> Error {
+        Error::new(&format!("config - {}", serde_error))
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
 

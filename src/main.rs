@@ -22,11 +22,7 @@ fn main() -> Result<(), Error> {
         let bundle_path = matches.value_of("bundle").unwrap_or(&current_dir);
 
         let config_file = bundle::read_config(&bundle_path)?;
-
-        let config = Config::load(config_file).unwrap_or_else(|err| {
-            eprintln!("{}", err);
-            std::process::exit(2);
-        });
+        let config = Config::load(config_file)?;
 
         let environment = Environment::try_from(config).unwrap_or_else(|err| {
             eprintln!("{}", err);
