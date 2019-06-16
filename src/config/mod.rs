@@ -3,19 +3,15 @@ pub mod process;
 pub mod mount;
 pub mod error;
 
+mod conv;
+
 #[cfg(target_os = "linux")]
 pub mod linux;
 
-mod conv;
-
-use std::fs::File;
-use std::io::BufReader;
-use std::path::PathBuf;
-
+use std::io::BufRead;
 use serde::{Serialize, Deserialize};
 
 pub use self::error::Error;
-
 pub use self::linux::Namespace;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -27,7 +23,8 @@ pub struct Config {
     process: process::Process,
     mounts: Vec<mount::Mount>,
 
-    #[cfg(target_os = "linux")] linux: linux::Linux,
+    #[cfg(target_os = "linux")]
+    linux: linux::Linux,
 }
 
 impl Config {
@@ -43,10 +40,68 @@ impl Config {
         &self.linux.namespaces
     }
 
-    pub fn load(config_path: &PathBuf) -> Result<Config, Error> {
-        let file = File::open(&config_path)?;
-        let reader = BufReader::new(file);
+    pub fn load<R: BufRead>(reader: R) -> Result<Config, Error> {
         let spec: Config = serde_json::from_reader(reader)?;
         Ok(spec)
+    }
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn config_load_with_synxtax_error() {
+        let data = r#"{ociVersion: "1.0.1-dev"}"#;
+
+        let config = Config::load(data.as_bytes());
+        assert!(config.is_err(), "expect {:?} to be err", config);
+    }
+
+    #[test]
+    fn config_load_return_err_when_json_has_no_oci_version() {
+        let data = r#"{"hostname":"hostname","process":{"args":["sh"],"env":["TERM=xterm"],"cwd":"/tmp","rlimits":[{"type":"RLIMIT_NOFILE","hard":1024,"soft":1024}]},"root":{"path":"rootfs","readonly":true},"mounts":[{"destination":"/proc","type":"proc","source":"/proc"}],"linux":{"namespaces":[{"type":"pid"}]}}"#;
+
+        let result = Config::load(data.as_bytes());
+        assert!(result.is_err(), "expect {:?} to be err", result);
+    }
+
+    #[test]
+    fn config_load_return_err_when_json_has_no_root() {
+        let data = r#"{"ociVersion":"1.0.0","hostname":"hostname","process":{"args":["sh"],"env":["TERM=xterm"],"cwd":"/tmp","rlimits":[{"type":"RLIMIT_NOFILE","hard":1024,"soft":1024}]},"mounts":[{"destination":"/proc","type":"proc","source":"/proc"}],"linux":{"namespaces":[{"type":"pid"}]}}"#;
+
+        let result = Config::load(data.as_bytes());
+        assert!(result.is_err(), "expect {:?} to be err", result);
+    }
+
+    #[test]
+    fn config_load_return_err_when_json_has_no_process() {
+        let data = r#"{"ociVersion":"1.0.0","hostname":"hostname","root":{"path":"rootfs","readonly":true},"mounts":[{"destination":"/proc","type":"proc","source":"/proc"}],"linux":{"namespaces":[{"type":"pid"}]}}"#;
+
+        let result = Config::load(data.as_bytes());
+        assert!(result.is_err(), "expect {:?} to be err", result);
+    }
+
+    #[test]
+    fn config_load_return_err_when_json_has_no_linux() {
+        let data = r#"{"ociVersion":"1.0.0","hostname":"hostname","process":{"args":["sh"],"env":["TERM=xterm"],"cwd":"/tmp","rlimits":[{"type":"RLIMIT_NOFILE","hard":1024,"soft":1024}]},"root":{"path":"rootfs","readonly":true},"mounts":[{"destination":"/proc","type":"proc","source":"/proc"}]}"#;
+
+        let result = Config::load(data.as_bytes());
+        assert!(result.is_err(), "expect {:?} to be err", result);
+    }
+
+    #[test]
+    fn config_load_return_ok_when_json_has_no_hostname() {
+        let data = r#"{"ociVersion":"1.0.0","process":{"args":["sh"],"env":["TERM=xterm"],"cwd":"/tmp","rlimits":[{"type":"RLIMIT_NOFILE","hard":1024,"soft":1024}]},"root":{"path":"rootfs","readonly":true},"mounts":[{"destination":"/proc","type":"proc","source":"/proc"}],"linux":{"namespaces":[{"type":"pid"}]}}"#;
+
+        let result = Config::load(data.as_bytes());
+        assert!(result.is_ok(), "expect {:?} to be err", result);
+    }
+
+    #[test]
+    fn config_load_return_ok_when_json_has_all_fields() {
+        let data = r#"{"ociVersion":"1.0.0","hostname":"hostname","process":{"args":["sh"],"env":["TERM=xterm"],"cwd":"/tmp","rlimits":[{"type":"RLIMIT_NOFILE","hard":1024,"soft":1024}]},"root":{"path":"rootfs","readonly":true},"mounts":[{"destination":"/proc","type":"proc","source":"/proc"}],"linux":{"namespaces":[{"type":"pid"}]}}"#;
+
+        let result = Config::load(data.as_bytes());
+        assert!(result.is_ok(), "expect {:?} to be err", result);
     }
 }

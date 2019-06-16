@@ -21,9 +21,9 @@ fn main() -> Result<(), Error> {
         let container_id = matches.value_of("container-id").unwrap();
         let bundle_path = matches.value_of("bundle").unwrap_or(&current_dir);
 
-        let config_file_path = bundle::config_file_path(&bundle_path)?;
+        let config_file = bundle::read_config(&bundle_path)?;
 
-        let config = Config::load(&config_file_path).unwrap_or_else(|err| {
+        let config = Config::load(config_file).unwrap_or_else(|err| {
             eprintln!("{}", err);
             std::process::exit(2);
         });
