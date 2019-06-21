@@ -2,6 +2,7 @@ extern crate serde;
 extern crate nix;
 extern crate libc;
 extern crate tempfile;
+extern crate failure;
 
 pub mod bundle;
 pub mod error;
