@@ -1,35 +1,37 @@
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
-use crate::error::Error;
+use crate::error::{Error, ErrorKind};
 
 const CONFIG_FILE_NAME: &str = "config.json";
 
-pub fn read_config(bundle_path: &str) -> Result<BufReader<File>, Error> {
-    let config_file_path = config_file_path(bundle_path)?;
+pub fn read_config(bundle_dir: &str) -> Result<BufReader<File>, Error> {
+    let bundle_path = canonical_bundle_path(bundle_dir)?;
+    let config_path = canonical_config_path(bundle_path)?;
 
-    match File::open(&config_file_path) {
-        Ok(file) => Ok(BufReader::new(file)),
-        Err(_) => {
-            let file = config_file_path.to_str().unwrap_or(CONFIG_FILE_NAME);
-            Err(Error::filesystem_error(file))
-        }
+    read_config_file(config_path)
+}
+
+fn canonical_bundle_path(bundle_dir: &str) -> Result<PathBuf, Error> {
+    let bundle_path = PathBuf::from(bundle_dir);
+    match bundle_path.canonicalize() {
+        Ok(path) => Ok(path),
+        Err(_) => Err(ErrorKind::Filesystem(bundle_path))?
     }
 }
 
-fn config_file_path(path: &str) -> Result<PathBuf, Error> {
-    let bundle_path = PathBuf::from(path);
+fn canonical_config_path(bundle_path: PathBuf) -> Result<PathBuf, Error> {
+    let config_file_path = bundle_path.join(CONFIG_FILE_NAME);
+    match config_file_path.canonicalize() {
+        Ok(path) => Ok(path),
+        Err(_) => Err(ErrorKind::Filesystem(config_file_path))?
+    }
+}
 
-    if bundle_path.is_dir() {
-        let config_file_path = bundle_path.join(CONFIG_FILE_NAME);
-        if let Ok(path) = config_file_path.canonicalize() {
-            Ok(path)
-        } else {
-            let file = config_file_path.to_str().unwrap_or(CONFIG_FILE_NAME);
-            Err(Error::filesystem_error(file))
-        }
-    } else {
-        Err(Error::filesystem_error(path))
+fn read_config_file(path: PathBuf) -> Result<BufReader<File>, Error> {
+    match File::open(&path) {
+        Ok(file) => Ok(BufReader::new(file)),
+        Err(_) => Err(ErrorKind::Filesystem(path))?
     }
 }
 
