@@ -10,4 +10,6 @@ pub use self::error::Error;
 pub mod config;
 pub use self::config::Config;
 
+pub mod filesystem;
+
 pub mod libcontainer;
