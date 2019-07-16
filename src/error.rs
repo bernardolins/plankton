@@ -6,7 +6,6 @@ use failure::Fail;
 use failure::Context;
 use failure::Backtrace;
 
-#[derive(Debug)]
 pub struct Error {
     inner: Context<String>,
 }
@@ -39,6 +38,16 @@ impl From<Context<String>> for Error {
     fn from(inner: Context<String>) -> Error {
         Error {
             inner,
+        }
+    }
+}
+
+impl fmt::Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if let Some(cause) = self.cause() {
+            write!(f, "{}\nCause: {}", self.inner, cause)
+        } else {
+            write!(f, "{}", self.inner)
         }
     }
 }

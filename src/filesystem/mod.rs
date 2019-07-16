@@ -1,5 +1,7 @@
 use std::env;
 
+pub mod pathbuf;
+
 const DEFAULT_PATH: &str = ".";
 
 pub fn cwd() -> String {

@@ -7,9 +7,11 @@ mod conv;
 #[cfg(target_os = "linux")]
 pub mod linux;
 
-use crate::Error;
 use std::io::BufRead;
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
+use serde::Deserialize;
+use failure::ResultExt;
+use crate::Error;
 
 pub use self::linux::Namespace;
 
@@ -40,14 +42,8 @@ impl Config {
     }
 
     pub fn load<R: BufRead>(reader: R) -> Result<Config, Error> {
-        let spec: Config = serde_json::from_reader(reader)?;
+        let spec: Config = serde_json::from_reader(reader).context("error reading config file".to_string())?;
         Ok(spec)
-    }
-}
-
-impl From<serde_json::error::Error> for Error {
-    fn from(serde_error: serde_json::error::Error) -> Error {
-        Error::from(format!("config file: {}", serde_error))
     }
 }
 
