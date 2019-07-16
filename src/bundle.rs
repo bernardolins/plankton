@@ -1,7 +1,8 @@
+use std::io;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
-use crate::error::{Error, ErrorKind};
+use crate::error::Error;
 
 const CONFIG_FILE_NAME: &str = "config.json";
 
@@ -16,7 +17,7 @@ fn canonical_bundle_path(bundle_dir: &str) -> Result<PathBuf, Error> {
     let bundle_path = PathBuf::from(bundle_dir);
     match bundle_path.canonicalize() {
         Ok(path) => Ok(path),
-        Err(_) => Err(ErrorKind::Filesystem(bundle_path))?
+        Err(err) => Err(Error::from(format!("{}: {}", bundle_dir, err)))?
     }
 }
 
@@ -24,14 +25,22 @@ fn canonical_config_path(bundle_path: PathBuf) -> Result<PathBuf, Error> {
     let config_file_path = bundle_path.join(CONFIG_FILE_NAME);
     match config_file_path.canonicalize() {
         Ok(path) => Ok(path),
-        Err(_) => Err(ErrorKind::Filesystem(config_file_path))?
+        Err(err) => Err(Error::from(error_message(config_file_path, err)))?
     }
 }
 
 fn read_config_file(path: PathBuf) -> Result<BufReader<File>, Error> {
     match File::open(&path) {
         Ok(file) => Ok(BufReader::new(file)),
-        Err(_) => Err(ErrorKind::Filesystem(path))?
+        Err(err) => Err(Error::from(error_message(path, err)))?
+    }
+}
+
+fn error_message(path: PathBuf, err: io::Error) -> String {
+    if let Some(str_path) = path.to_str() {
+        format!("{}: {}", str_path, err)
+    } else {
+        format!("error opening file or dir: {}", err)
     }
 }
 

@@ -1,46 +1,44 @@
-use std::io;
-use std::path::PathBuf;
+extern crate failure;
 
+use std::fmt;
+use std::fmt::Display;
+use failure::Fail;
+use failure::Context;
+use failure::Backtrace;
+
+#[derive(Debug)]
 pub struct Error {
-    message: String,
+    inner: Context<String>,
 }
 
-pub enum ErrorKind {
-    Filesystem(PathBuf)
-}
+impl Fail for Error {
+    fn cause(&self) -> Option<&Fail> {
+        self.inner.cause()
+    }
 
-impl From<ErrorKind> for Error {
-    fn from(error_kind: ErrorKind) -> Error {
-        let message = match error_kind {
-            ErrorKind::Filesystem(pathbuf) => format!("{}: {}", pathbuf.to_str().unwrap(), io::Error::last_os_error()),
-        };
-
-        Error { message }
+    fn backtrace(&self) -> Option<&Backtrace> {
+        self.inner.backtrace()
     }
 }
 
-impl Error {
-    pub fn new(message: &str) -> Error {
+impl Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.inner, f)
+    }
+}
+
+impl From<String> for Error {
+    fn from(msg: String) -> Error {
         Error {
-            message: String::from(message),
+            inner: Context::new(msg.into()),
         }
     }
 }
 
-impl std::error::Error for Error {
-    fn description(&self) -> &str {
-        &self.message
-    }
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl std::fmt::Debug for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.message)
+impl From<Context<String>> for Error {
+    fn from(inner: Context<String>) -> Error {
+        Error {
+            inner,
+        }
     }
 }

@@ -47,7 +47,7 @@ impl Config {
 
 impl From<serde_json::error::Error> for Error {
     fn from(serde_error: serde_json::error::Error) -> Error {
-        Error::new(&format!("config - {}", serde_error))
+        Error::from(format!("config file: {}", serde_error))
     }
 }
 
