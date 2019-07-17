@@ -1,6 +1,6 @@
 use std::env;
 use std::process;
-use std::error::Error;
+//use std::error::Error;
 use std::ffi::OsStr;
 use std::ffi::CString;
 use std::path::PathBuf;
@@ -12,6 +12,7 @@ use nix::unistd::Pid;
 use nix::sched::CloneFlags;
 use nix::sys::wait::WaitPidFlag;
 
+use crate::libcontainer::Error;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
 use crate::libcontainer::linux::environment::Environment;
@@ -34,7 +35,7 @@ pub fn create(environment: &Environment) -> i32 {
     match sched::clone(exec_fn, stack, CloneFlags::empty(), None) {
         Ok(pid) => pid.as_raw(),
         Err(err) => {
-            exit("clone error", ExitCode::Create, Box::new(err));
+            exit("clone error", ExitCode::Create, Box::new(Error::from(err)));
             return 0;
         }
     }
@@ -42,7 +43,7 @@ pub fn create(environment: &Environment) -> i32 {
 
 pub fn wait(pid: i32) {
     if let Err(err) = wait::waitpid(Pid::from_raw(pid), Some(WaitPidFlag::__WALL)) {
-        exit("wait error", ExitCode::Wait, Box::new(err));
+        exit("wait error", ExitCode::Wait, Box::new(Error::from(err)));
     }
 }
 
@@ -70,28 +71,28 @@ fn try_set_env_vars(env_vars: &Vec<(String, String)>) {
 
 fn try_set_chroot(rootfs: &PathBuf) {
     if let Err(err) = unistd::chroot(rootfs) {
-        exit("error setting container root", ExitCode::Rootfs, Box::new(err));
+        exit("error setting container root", ExitCode::Rootfs, Box::new(Error::from(err)));
     }
 }
 
 fn try_set_mount_points(mount_list: &Vec<MountPoint>) {
     for mount_point in mount_list {
         if let Err(err) = mount_point.mount() {
-            exit("mount error", ExitCode::Mount, Box::new(err));
+            exit("mount error", ExitCode::Mount, Box::new(Error::from(format!("{}", err))));
         }
     }
 }
 
 fn try_set_working_dir(working_dir: &PathBuf) {
     if let Err(err) = env::set_current_dir(working_dir) {
-       exit("error setting container working dir", ExitCode::SetWorkingDir, Box::new(err));
+       exit("error setting container working dir", ExitCode::SetWorkingDir, Box::new(Error::from(format!("{}", err))));
     }
 }
 
 fn try_set_rlimits(rlimits: &Vec<Rlimit>) {
     for rlimit in rlimits {
         if let Err(err) = rlimit.set() {
-            exit("error setting rlimit", ExitCode::Rlimit, Box::new(err));
+            exit("error setting rlimit", ExitCode::Rlimit, Box::new(Error::from(err)));
         }
     }
 }
@@ -103,14 +104,14 @@ fn try_exec(argv: &Vec<String>) {
     let path = args[0].clone();
 
     if let Err(err) = unistd::execvp(&path, &args) {
-        exit("exec error", ExitCode::Exec, Box::new(err));
+        exit("exec error", ExitCode::Exec, Box::new(Error::from(err)));
     }
 }
 
 fn try_set_hostname(option_hostname: &Option<String>) {
     if let Some(hostname) = option_hostname {
         if let Err(err) = unistd::sethostname(hostname) {
-           exit("error setting container hostname", ExitCode::SetHostname, Box::new(err));
+           exit("error setting container hostname", ExitCode::SetHostname, Box::new(Error::from(err)));
         }
     }
 }

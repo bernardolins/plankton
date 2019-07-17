@@ -1,4 +1,4 @@
-use super::error::ErrorReason;
+use super::error::ErrorKind;
 use crate::libcontainer::Error;
 
 #[derive(Debug, PartialEq)]
@@ -22,7 +22,7 @@ impl NamespaceType {
             "mount" => Ok(NamespaceType::MOUNT),
             "cgroup" => Ok(NamespaceType::CGROUP),
             "network" => Ok(NamespaceType::NETWORK),
-            _ => Err(Error::from(ErrorReason::InvalidNamespaceType)),
+            _ => Err(Error::from(ErrorKind::InvalidNamespaceType)),
         }
     }
 }

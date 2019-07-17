@@ -1,5 +1,7 @@
+use crate::libcontainer::Error;
+
 #[derive(Debug, PartialEq)]
-pub enum ErrorReason {
+pub enum ErrorKind {
     InvalidNamespaceType,
     DuplicatedNamespace,
     InsufficientMemory,
@@ -8,27 +10,28 @@ pub enum ErrorReason {
     Unknown,
 }
 
-impl std::fmt::Display for ErrorReason {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let message = match *self {
-            ErrorReason::InvalidNamespaceType => "invalid namespace type",
-            ErrorReason::DuplicatedNamespace => "cannot set the same namespace twice",
-            ErrorReason::InsufficientMemory => "insufficient memory (ENOMEM)",
-            ErrorReason::InvalidFlags => "invalid flags when creating a namespace (EINVAL)",
-            ErrorReason::PermissionDenied => "permission denied (EPERM)",
-            ErrorReason::Unknown => "unknown error",
+impl From<ErrorKind> for Error {
+    fn from(kind: ErrorKind) -> Error {
+        let message = match kind {
+            ErrorKind::InvalidNamespaceType => "invalid namespace type",
+            ErrorKind::DuplicatedNamespace => "cannot set the same namespace twice",
+            ErrorKind::InsufficientMemory => "insufficient memory (ENOMEM)",
+            ErrorKind::InvalidFlags => "invalid flags when creating a namespace (EINVAL)",
+            ErrorKind::PermissionDenied => "permission denied (EPERM)",
+            ErrorKind::Unknown => "unknown error",
         };
-        write!(f, "{}", message)
+
+        Error::from(message.to_string())
     }
 }
 
-impl From<nix::Error> for ErrorReason {
-    fn from(nix_error: nix::Error) -> ErrorReason {
+impl From<nix::Error> for Error {
+    fn from(nix_error: nix::Error) -> Error {
         match nix_error.as_errno() {
-            Some(nix::errno::Errno::ENOMEM) => ErrorReason::InsufficientMemory,
-            Some(nix::errno::Errno::EINVAL) => ErrorReason::InvalidFlags,
-            Some(nix::errno::Errno::EPERM) => ErrorReason::PermissionDenied,
-            _ => ErrorReason::Unknown,
+            Some(nix::errno::Errno::ENOMEM) => Error::from(ErrorKind::InsufficientMemory),
+            Some(nix::errno::Errno::EINVAL) => Error::from(ErrorKind::InvalidFlags),
+            Some(nix::errno::Errno::EPERM) => Error::from(ErrorKind::PermissionDenied),
+            _ => Error::from(ErrorKind::Unknown),
         }
     }
 }

@@ -1,34 +1,44 @@
-mod conv;
+extern crate failure;
 
-#[derive(Debug, PartialEq)]
+use std::fmt;
+use std::fmt::Display;
+use failure::Fail;
+use failure::Context;
+use failure::Backtrace;
+
+#[derive(Debug)]
 pub struct Error {
-    kind: ErrorKind,
-    message: String,
+    inner: Context<String>,
 }
 
-#[derive(Debug, PartialEq)]
-pub enum ErrorKind {
-    Mount,
-    Environment,
-    Namespace,
-    Config,
-    Rlimit,
-}
+impl Fail for Error {
+    fn cause(&self) -> Option<&Fail> {
+        self.inner.cause()
+    }
 
-impl Error {
-    pub fn kind(&self) -> &ErrorKind {
-        &self.kind
+    fn backtrace(&self) -> Option<&Backtrace> {
+        self.inner.backtrace()
     }
 }
 
-impl std::error::Error for Error {
-    fn description(&self) -> &str {
-        &self.message
+impl Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.inner, f)
     }
 }
 
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.message)
+impl From<String> for Error {
+    fn from(msg: String) -> Error {
+        Error {
+            inner: Context::new(msg.into()),
+        }
+    }
+}
+
+impl From<Context<String>> for Error {
+    fn from(inner: Context<String>) -> Error {
+        Error {
+            inner,
+        }
     }
 }

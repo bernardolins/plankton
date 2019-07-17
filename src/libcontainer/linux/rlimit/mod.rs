@@ -3,8 +3,8 @@ pub mod resource;
 
 use std::io;
 use crate::libcontainer::Error;
+use failure::ResultExt;
 
-pub use self::error::ErrorReason;
 pub use self::resource::ResourceType;
 
 #[derive(Debug)]
@@ -33,9 +33,7 @@ impl Rlimit {
 
         unsafe {
             if libc::setrlimit(resource, &mut rlimit) != 0 {
-                let err = io::Error::last_os_error();
-                let kind = ErrorReason::new(&format!("{}", err));
-                return Err(Error::from(kind));
+                Err(io::Error::last_os_error()).context(format!("error setting rlimit {:?}", self.resource))?;
             }
         }
 

@@ -1,7 +1,5 @@
 use crate::libcontainer::Error;
 
-use super::error::ErrorReason;
-
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
 pub enum ResourceType {
@@ -42,7 +40,7 @@ impl ResourceType {
             "RLIMIT_RTTIME" => Ok(ResourceType::RLIMIT_RTTIME),
             "RLIMIT_SIGPENDING" => Ok(ResourceType::RLIMIT_SIGPENDING),
             "RLIMIT_STACK" => Ok(ResourceType::RLIMIT_STACK),
-            _ => Err(Error::from(ErrorReason::new("invalid resource type"))),
+            _ => Err(Error::from("invalid resource type".to_string())),
         }
     }
 

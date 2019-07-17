@@ -7,7 +7,7 @@ use nix::sched::CloneFlags;
 
 use crate::libcontainer::Error;
 
-pub use self::error::ErrorReason;
+pub use self::error::ErrorKind;
 pub use self::r#type::NamespaceType;
 pub use self::list::NamespaceList;
 
@@ -27,10 +27,7 @@ impl Namespace {
 
     pub fn enter(&self) -> Result<(), Error> {
         if let None = self.path {
-            if let Err(error) = sched::unshare(self.unshare_flags()) {
-                let reason = ErrorReason::from(error);
-                return Err(Error::from(reason));
-            };
+            sched::unshare(self.unshare_flags())?;
         }
         Ok(())
     }
