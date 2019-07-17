@@ -1,17 +1,19 @@
 #[macro_use]
 extern crate clap;
 extern crate cr7;
+extern crate failure;
 
 use clap::App;
 
 use cr7::filesystem;
-use cr7::Error;
 use cr7::Config;
 use cr7::bundle;
 use cr7::libcontainer::Container;
 use cr7::libcontainer::Environment;
 
 use std::convert::TryFrom;
+
+use failure::Error;
 
 fn main() -> Result<(), Error> {
     let yaml = load_yaml!("cli.yml");
@@ -24,18 +26,10 @@ fn main() -> Result<(), Error> {
 
         let config_file = bundle::read_config(&bundle_path)?;
         let config = Config::load(config_file)?;
-
-        let environment = Environment::try_from(config).unwrap_or_else(|err| {
-            eprintln!("{}", err);
-            std::process::exit(3);
-        });
-
+        let environment = Environment::try_from(config)?;
 
         let mut container = Container::new(container_id, environment);
-        container.run().unwrap_or_else(|err| {
-            eprintln!("{}", err);
-            std::process::exit(4);
-        });
+        container.run()?;
     }
 
     Ok(())

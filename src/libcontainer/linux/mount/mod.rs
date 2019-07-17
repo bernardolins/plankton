@@ -1,8 +1,6 @@
-pub mod error;
-
+use crate::libcontainer::Error;
 use nix::mount;
-
-pub use self::error::Error;
+use failure::ResultExt;
 
 #[derive(Debug)]
 pub struct MountPoint {
@@ -21,19 +19,17 @@ impl MountPoint {
     }
 
     pub fn mount(&self) -> Result<(), Error> {
-        let mount_result = mount::mount(
+        mount::mount(
             self.source as Option<&'static str>,
             self.destination as &'static str,
             self.filesystem_type as Option<&'static str>,
             nix::mount::MsFlags::empty(),
             None as Option<&'static str>
-        );
+        ).context(
+            format!("src: {}, dst: {}, fs type: {}", self.source.unwrap_or(""), self.destination, self.filesystem_type.unwrap_or(""))
+        )?;
 
-        if let Err(err) = mount_result {
-            Err(Error::new(self.source, self.destination, self.filesystem_type, &format!("{}", err)))
-        } else {
-            Ok(())
-        }
+        Ok(())
     }
 }
 
