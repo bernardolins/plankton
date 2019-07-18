@@ -4,6 +4,8 @@ use super::error::ErrorKind;
 use super::Namespace;
 use super::NamespaceType;
 
+use failure::ResultExt;
+
 #[derive(Debug)]
 pub struct NamespaceList {
     list: Vec<Namespace>
@@ -22,18 +24,15 @@ impl NamespaceList {
 
     pub fn insert(&mut self, namespace: Namespace) -> Result<(), Error> {
         if self.contains_type(&namespace.r#type) {
-            let reason = ErrorKind::DuplicatedNamespace;
-            return Err(Error::from(reason))
+            Err(Error::from(ErrorKind::DuplicatedNamespace)).context(namespace.r#type.to_string())?
         }
-        self.list.push(namespace);
 
+        self.list.push(namespace);
         Ok(())
     }
 
     pub fn contains_type(&self, ns_type: &NamespaceType) -> bool {
-        self.list.iter().any(|ns|
-             ns.r#type == *ns_type
-        )
+        self.list.iter().any(|ns| ns.r#type == *ns_type)
     }
 }
 

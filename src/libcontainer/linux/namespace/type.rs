@@ -1,5 +1,6 @@
 use super::error::ErrorKind;
 use crate::libcontainer::Error;
+use failure::ResultExt;
 
 #[derive(Debug, PartialEq)]
 pub enum NamespaceType {
@@ -22,8 +23,21 @@ impl NamespaceType {
             "mount" => Ok(NamespaceType::MOUNT),
             "cgroup" => Ok(NamespaceType::CGROUP),
             "network" => Ok(NamespaceType::NETWORK),
-            _ => Err(Error::from(ErrorKind::InvalidNamespaceType)),
+            _ => Err(Error::from(ErrorKind::InvalidNamespaceType)).context(original.to_string())?,
         }
+    }
+
+    pub fn to_string(&self) -> String {
+        let str_type = match *self {
+            NamespaceType::PID => "pid",
+            NamespaceType::UTS => "uts",
+            NamespaceType::IPC => "ipc",
+            NamespaceType::USER => "user",
+            NamespaceType::MOUNT => "mount",
+            NamespaceType::CGROUP => "cgroup",
+            NamespaceType::NETWORK => "network",
+        };
+        str_type.to_string()
     }
 }
 
@@ -54,6 +68,24 @@ mod tests {
     fn namespace_type_from_str_returns_error_on_invalid_namespace() {
         let result = NamespaceType::from_str("invalid");
         assert!(result.is_err(), "expect {:?} to be ok", result);
+    }
+
+    #[test]
+    fn namespace_type_to_string() {
+        let table = vec![
+            (NamespaceType::PID, "pid"),
+            (NamespaceType::UTS, "uts"),
+            (NamespaceType::IPC, "ipc"),
+            (NamespaceType::USER, "user"),
+            (NamespaceType::MOUNT, "mount"),
+            (NamespaceType::CGROUP, "cgroup"),
+            (NamespaceType::NETWORK, "network"),
+        ];
+
+        for (original, expect) in table {
+            let result = original.to_string();
+            assert_eq!(result, expect, "expect {} to be {}", expect, result);
+        }
     }
 }
 
