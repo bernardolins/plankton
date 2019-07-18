@@ -9,6 +9,8 @@ use crate::libcontainer::linux::namespace::Namespace;
 use crate::libcontainer::linux::namespace::NamespaceType;
 use crate::libcontainer::linux::namespace::NamespaceList;
 
+use failure::ResultExt;
+
 pub use self::error::ErrorKind;
 
 const DEFAULT_WORKING_DIR: &str = "/";
@@ -74,21 +76,21 @@ impl Environment {
     pub fn set_working_dir(&mut self, working_dir: &str) -> Result<(), Error> {
         let cwd = PathBuf::from(working_dir);
 
-        if cwd.is_absolute() {
-            self.working_dir = cwd;
-            Ok(())
-        } else {
-            Err(Error::from(ErrorKind::WorkingDir))
+        if cwd.is_relative() {
+            Err(Error::from(ErrorKind::InvalidWorkingDir)).context(working_dir.to_string())?
         }
+
+        self.working_dir = cwd;
+        Ok(())
     }
 
     pub fn set_hostname(&mut self, hostname: &str) -> Result<(), Error> {
-        if self.namespaces.contains_type(&NamespaceType::UTS) {
-            self.hostname = Some(String::from(hostname));
-            Ok(())
-        } else {
-            Err(Error::from(ErrorKind::Hostname))
+        if !self.namespaces.contains_type(&NamespaceType::UTS) {
+            Err(ErrorKind::PrivateHostname)?
         }
+
+        self.hostname = Some(String::from(hostname));
+        Ok(())
     }
 
     pub fn set_namespace(&mut self, namespace: Namespace) -> Result<(), Error> {
@@ -103,14 +105,14 @@ impl Environment {
         let mut splitted_env: Vec<&str> = env_var.split("=").collect();
 
         if splitted_env.len() != 2 {
-            return Err(Error::from(ErrorKind::EnvVar));
+            Err(Error::from(ErrorKind::WrongEnvVarFormat)).context(env_var.to_string())?
         }
 
         let k = String::from(splitted_env.remove(0));
         let v = String::from(splitted_env.remove(0));
 
         if k.is_empty() {
-            return Err(Error::from(ErrorKind::EnvVar));
+            Err(Error::from(ErrorKind::WrongEnvVarFormat)).context(env_var.to_string())?
         }
 
         self.env_vars.push((k, v));
