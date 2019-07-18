@@ -29,12 +29,12 @@ impl Container {
             namespace.enter()?;
         }
 
-        let init_pid = process::create(&self.environment);
+        let init_pid = process::create(&self.environment)?;
 
         self.init_pid = Some(init_pid);
         self.status = Status::Created;
 
-        process::wait(init_pid);
+        process::wait(init_pid)?;
 
         Ok(())
     }

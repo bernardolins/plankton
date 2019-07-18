@@ -2,6 +2,8 @@
 extern crate clap;
 extern crate cr7;
 extern crate failure;
+extern crate exitfailure;
+
 
 use clap::App;
 
@@ -13,9 +15,9 @@ use cr7::libcontainer::Environment;
 
 use std::convert::TryFrom;
 
-use failure::Error;
+use exitfailure::ExitFailure;
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), ExitFailure> {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
 
