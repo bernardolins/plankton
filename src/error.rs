@@ -1,12 +1,13 @@
 extern crate failure;
 
 use std::fmt;
+use std::fmt::Debug;
 use std::fmt::Display;
+
 use failure::Fail;
 use failure::Context;
 use failure::Backtrace;
 
-#[derive(Debug)]
 pub struct Error {
     inner: Context<String>,
 }
@@ -23,7 +24,19 @@ impl Fail for Error {
 
 impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        Display::fmt(&self.inner, f)
+        write!(f, "{}", self.inner)?;
+
+        if let Some(cause) = self.cause() {
+            write!(f, "\nReason: {}", cause)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self)
     }
 }
 
