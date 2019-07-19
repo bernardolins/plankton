@@ -1,4 +1,4 @@
-use crate::libcontainer::Error;
+use crate::Error;
 
 use super::error::ErrorKind;
 use super::Namespace;

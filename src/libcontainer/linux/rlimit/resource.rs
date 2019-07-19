@@ -1,4 +1,4 @@
-use crate::libcontainer::Error;
+use crate::Error;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug)]

@@ -1,4 +1,4 @@
-use crate::libcontainer::Error;
+use crate::Error;
 
 #[derive(Debug, PartialEq)]
 pub enum ErrorKind {

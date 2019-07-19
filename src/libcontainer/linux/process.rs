@@ -11,7 +11,7 @@ use nix::unistd::Pid;
 use nix::sched::CloneFlags;
 use nix::sys::wait::WaitPidFlag;
 
-use crate::libcontainer::Error;
+use crate::Error;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
 use crate::libcontainer::linux::environment::Environment;

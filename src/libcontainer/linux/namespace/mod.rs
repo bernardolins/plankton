@@ -5,7 +5,7 @@ pub mod list;
 use nix::sched;
 use nix::sched::CloneFlags;
 
-use crate::libcontainer::Error;
+use crate::Error;
 
 pub use self::error::ErrorKind;
 pub use self::r#type::NamespaceType;

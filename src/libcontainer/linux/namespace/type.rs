@@ -1,5 +1,5 @@
 use super::error::ErrorKind;
-use crate::libcontainer::Error;
+use crate::Error;
 use failure::ResultExt;
 
 #[derive(Debug, PartialEq)]

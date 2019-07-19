@@ -2,7 +2,7 @@ mod status;
 
 use self::status::Status;
 
-use crate::libcontainer::Error;
+use crate::Error;
 use crate::libcontainer::linux::process;
 use crate::libcontainer::linux::environment::Environment;
 

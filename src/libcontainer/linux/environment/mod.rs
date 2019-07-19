@@ -2,7 +2,7 @@ pub mod error;
 
 use std::path::PathBuf;
 
-use crate::libcontainer::Error;
+use crate::Error;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
 use crate::libcontainer::linux::namespace::Namespace;

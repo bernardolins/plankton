@@ -1,4 +1,4 @@
-use crate::libcontainer::Error;
+use crate::Error;
 use nix::mount;
 use failure::ResultExt;
 
