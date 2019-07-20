@@ -12,9 +12,11 @@ use nix::sched::CloneFlags;
 use nix::sys::wait::WaitPidFlag;
 
 use crate::Error;
+use crate::filesystem::pathbuf;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
 use crate::libcontainer::linux::environment::Environment;
+
 use failure::ResultExt;
 
 pub fn create(environment: &Environment) -> Result<i32, Error> {
@@ -31,16 +33,28 @@ pub fn wait(pid: i32) -> Result<(), Error> {
 }
 
 fn child(environment: &Environment) -> isize {
-    try_set_chroot(environment.rootfs());
-    try_set_env_vars(environment.env_vars());
-    try_set_mount_points(environment.mount_list());
-    try_set_working_dir(environment.working_dir());
-    try_set_hostname(environment.hostname());
-    try_set_rlimits(environment.rlimits());
-
-    try_exec(environment.argv());
+    if let Err(err) = try_create_container(environment) {
+        eprintln!("Error: {}", err);
+        process::exit(exitcode::OSERR);
+    }
 
     return 0;
+}
+
+fn try_create_container(environment: &Environment) -> Result<(), Error> {
+    try_set_chroot(environment.rootfs())?;
+    try_set_env_vars(environment.env_vars());
+    try_set_mount_points(environment.mount_list())?;
+    try_set_working_dir(environment.working_dir())?;
+    try_set_hostname(environment.hostname())?;
+    try_set_rlimits(environment.rlimits())?;
+    try_exec(environment.argv())?;
+    Ok(())
+}
+
+fn try_set_chroot(rootfs: &PathBuf) -> Result<(), Error> {
+    unistd::chroot(rootfs).context(pathbuf::to_string(rootfs.to_path_buf()))?;
+    Ok(())
 }
 
 fn try_set_env_vars(env_vars: &Vec<(String, String)>) {
@@ -52,55 +66,38 @@ fn try_set_env_vars(env_vars: &Vec<(String, String)>) {
     }
 }
 
-fn try_set_chroot(rootfs: &PathBuf) {
-    if let Err(err) = unistd::chroot(rootfs) {
-        exit(Error::from(err));
-    }
-}
-
-fn try_set_mount_points(mount_list: &Vec<MountPoint>) {
+fn try_set_mount_points(mount_list: &Vec<MountPoint>) -> Result<(), Error> {
     for mount_point in mount_list {
-        if let Err(err) = mount_point.mount() {
-            exit(Error::from(format!("{}", err)));
-        }
+        mount_point.mount()?;
     }
+    Ok(())
 }
 
-fn try_set_working_dir(working_dir: &PathBuf) {
-    if let Err(err) = env::set_current_dir(working_dir) {
-       exit(Error::from(format!("{}", err)));
-    }
+fn try_set_working_dir(working_dir: &PathBuf) -> Result<(), Error> {
+    env::set_current_dir(working_dir).context(pathbuf::to_string(working_dir.to_path_buf()))?;
+    Ok(())
 }
 
-fn try_set_rlimits(rlimits: &Vec<Rlimit>) {
+fn try_set_hostname(option_hostname: &Option<String>) -> Result<(), Error> {
+    if let Some(hostname) = option_hostname {
+        unistd::sethostname(hostname).context(hostname.to_string())?;
+    }
+    Ok(())
+}
+
+fn try_set_rlimits(rlimits: &Vec<Rlimit>) -> Result<(), Error> {
     for rlimit in rlimits {
-        if let Err(err) = rlimit.set() {
-            exit(Error::from(err));
-        }
+        rlimit.set()?;
     }
+    Ok(())
 }
 
-fn try_exec(argv: &Vec<String>) {
+fn try_exec(argv: &Vec<String>) -> Result<(), Error> {
     let args: Vec<CString> = argv.iter().map(|arg|
         CString::new(arg.to_string()).expect("error parsing argument")
     ).collect();
     let path = args[0].clone();
 
-    if let Err(ctx) = unistd::execvp(&path, &args).context(format!("{:?}", &argv)) {
-        let err = Error::from(ctx);
-        exit(err);
-    }
-}
-
-fn try_set_hostname(option_hostname: &Option<String>) {
-    if let Some(hostname) = option_hostname {
-        if let Err(err) = unistd::sethostname(hostname) {
-           exit(Error::from(err));
-        }
-    }
-}
-
-fn exit(err: Error) {
-    eprintln!("Error: {}", err);
-    process::exit(exitcode::OSERR);
+    unistd::execvp(&path, &args).context(format!("{:?}", &argv))?;
+    Ok(())
 }
