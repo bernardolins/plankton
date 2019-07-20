@@ -1,10 +1,13 @@
-mod status;
-
-use self::status::Status;
-
 use crate::Error;
 use crate::libcontainer::linux::process;
 use crate::libcontainer::linux::environment::Environment;
+
+#[derive(Debug, PartialEq)]
+pub enum Status {
+    Creating,
+    Created,
+    Running,
+}
 
 #[derive(Debug)]
 pub struct Container {
