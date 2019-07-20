@@ -31,7 +31,7 @@ impl From<nix::Error> for Error {
             Some(nix::errno::Errno::ENOMEM) => Error::from(ErrorKind::InsufficientMemory),
             Some(nix::errno::Errno::EINVAL) => Error::from(ErrorKind::InvalidFlags),
             Some(nix::errno::Errno::EPERM) => Error::from(ErrorKind::PermissionDenied),
-            _ => Error::from(ErrorKind::Unknown),
+            _ => Error::from(format!("{}", nix_error)),
         }
     }
 }
