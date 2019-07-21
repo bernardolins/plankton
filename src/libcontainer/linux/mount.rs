@@ -1,32 +1,42 @@
 use crate::Error;
 use nix::mount;
 use failure::ResultExt;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct MountPoint {
-    source: Option<&'static str>,
-    destination: &'static str,
-    filesystem_type: Option<&'static str>,
+    source: Option<PathBuf>,
+    destination: PathBuf,
+    filesystem_type: Option<PathBuf>,
 }
 
 impl MountPoint {
-    pub fn create(source: Option<&'static str>, destination: &'static str, filesystem_type: Option<&'static str>) -> MountPoint {
+    pub fn create(source: Option<&str>, destination: &str, filesystem_type: Option<&str>) -> MountPoint {
         MountPoint {
-            source: source,
-            destination: destination,
-            filesystem_type: filesystem_type,
+            source: source.map(|s| PathBuf::from(s)),
+            destination: PathBuf::from(destination),
+            filesystem_type: filesystem_type.map(|s| PathBuf::from(s)),
         }
     }
 
     pub fn mount(&self) -> Result<(), Error> {
+        let source = self.source.clone();
+        let destination = self.destination.clone();
+        let filesystem_type = self.filesystem_type.clone();
+
         mount::mount(
-            self.source as Option<&'static str>,
-            self.destination as &'static str,
-            self.filesystem_type as Option<&'static str>,
+            source.as_ref() as Option<&PathBuf>,
+            &destination as &PathBuf,
+            filesystem_type.as_ref() as Option<&PathBuf>,
             nix::mount::MsFlags::empty(),
-            None as Option<&'static str>
+            None as Option<&PathBuf>
         ).context(
-            format!("src: {}, dst: {}, fs type: {}", self.source.unwrap_or(""), self.destination, self.filesystem_type.unwrap_or(""))
+            format!(
+                "cannot mount {:?} on {:?} using filesystem {:?}",
+                source.unwrap_or(PathBuf::from("")),
+                destination,
+                filesystem_type.unwrap_or(PathBuf::from(""))
+            )
         )?;
 
         Ok(())
@@ -41,9 +51,9 @@ mod tests {
     fn mount_point_create_returns_mountpoint() {
         let mount_point = MountPoint::create(Some("/tmp"), "/tmp", Some("tmpfs"));
 
-        assert_eq!(mount_point.source, Some("/tmp"));
-        assert_eq!(mount_point.destination, "/tmp");
-        assert_eq!(mount_point.filesystem_type, Some("tmpfs"));
+        assert_eq!(mount_point.source, Some(PathBuf::from("/tmp")));
+        assert_eq!(mount_point.destination, PathBuf::from("/tmp"));
+        assert_eq!(mount_point.filesystem_type, Some(PathBuf::from("tmpfs")));
     }
 
     #[test]
