@@ -1,8 +1,10 @@
 use super::error::ErrorKind;
 use crate::Error;
+use serde::Deserialize;
+use serde::Serialize;
 use failure::ResultExt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum NamespaceType {
     PID,
     UTS,

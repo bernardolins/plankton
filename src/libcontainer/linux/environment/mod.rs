@@ -1,21 +1,21 @@
 pub mod error;
 
 use std::path::PathBuf;
-
 use crate::Error;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
 use crate::libcontainer::linux::namespace::Namespace;
 use crate::libcontainer::linux::namespace::NamespaceType;
 use crate::libcontainer::linux::namespace::NamespaceList;
-
+use serde::Deserialize;
+use serde::Serialize;
 use failure::ResultExt;
 
 pub use self::error::ErrorKind;
 
 const DEFAULT_WORKING_DIR: &str = "/";
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Environment {
     argv: Vec<String>,
     rootfs: PathBuf,

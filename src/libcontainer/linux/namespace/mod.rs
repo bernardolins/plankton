@@ -2,16 +2,17 @@ pub mod error;
 pub mod r#type;
 pub mod list;
 
+use crate::Error;
+use serde::Deserialize;
+use serde::Serialize;
 use nix::sched;
 use nix::sched::CloneFlags;
-
-use crate::Error;
 
 pub use self::error::ErrorKind;
 pub use self::r#type::NamespaceType;
 pub use self::list::NamespaceList;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Namespace {
     r#type: NamespaceType,
     path: Option<String>,

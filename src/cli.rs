@@ -16,7 +16,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), Error> {
     let config = Config::load(config_file)?;
     let environment = Environment::try_from(config)?;
 
-    let mut container = Container::new(container_id, environment);
+    let mut container = Container::new(container_id, environment)?;
     container.run()?;
 
     Ok(())

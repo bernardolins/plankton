@@ -1,9 +1,11 @@
+use std::path::PathBuf;
 use crate::Error;
+use serde::Deserialize;
+use serde::Serialize;
 use nix::mount;
 use failure::ResultExt;
-use std::path::PathBuf;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MountPoint {
     source: Option<PathBuf>,
     destination: PathBuf,

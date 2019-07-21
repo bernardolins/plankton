@@ -2,11 +2,13 @@ pub mod resource;
 
 use std::io;
 use crate::Error;
+use serde::Deserialize;
+use serde::Serialize;
 use failure::ResultExt;
 
 pub use self::resource::ResourceType;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Rlimit {
     resource: ResourceType,
     soft: u64,

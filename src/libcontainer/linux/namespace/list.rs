@@ -3,10 +3,11 @@ use crate::Error;
 use super::error::ErrorKind;
 use super::Namespace;
 use super::NamespaceType;
-
+use serde::Deserialize;
+use serde::Serialize;
 use failure::ResultExt;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NamespaceList {
     list: Vec<Namespace>
 }
