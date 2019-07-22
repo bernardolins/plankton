@@ -1,5 +1,3 @@
-pub mod error;
-
 use std::path::PathBuf;
 use crate::Error;
 use crate::libcontainer::linux::rlimit::Rlimit;
@@ -10,8 +8,6 @@ use crate::libcontainer::linux::namespace::NamespaceList;
 use serde::Deserialize;
 use serde::Serialize;
 use failure::ResultExt;
-
-pub use self::error::ErrorKind;
 
 const DEFAULT_WORKING_DIR: &str = "/";
 
@@ -77,7 +73,7 @@ impl Environment {
         let cwd = PathBuf::from(working_dir);
 
         if cwd.is_relative() {
-            Err(Error::from(ErrorKind::InvalidWorkingDir)).context(working_dir.to_string())?
+            Err(Error::from("working dir is not a valid absolute path".to_string())).context(working_dir.to_string())?
         }
 
         self.working_dir = cwd;
@@ -86,7 +82,7 @@ impl Environment {
 
     pub fn set_hostname(&mut self, hostname: &str) -> Result<(), Error> {
         if !self.namespaces.contains_type(&NamespaceType::UTS) {
-            Err(ErrorKind::PrivateHostname)?
+            Err("container needs a private UTS namespace in order to set hostname".to_string())?
         }
 
         self.hostname = Some(String::from(hostname));
@@ -103,16 +99,17 @@ impl Environment {
 
     pub fn add_env_var(&mut self, env_var: &str) -> Result<(), Error> {
         let mut splitted_env: Vec<&str> = env_var.split("=").collect();
+        let error_message = "environment variable must have 'KEY=VALUE' format";
 
         if splitted_env.len() != 2 {
-            Err(Error::from(ErrorKind::WrongEnvVarFormat)).context(env_var.to_string())?
+            Err(Error::from(error_message.to_string())).context(env_var.to_string())?
         }
 
         let k = String::from(splitted_env.remove(0));
         let v = String::from(splitted_env.remove(0));
 
         if k.is_empty() {
-            Err(Error::from(ErrorKind::WrongEnvVarFormat)).context(env_var.to_string())?
+            Err(Error::from(error_message.to_string())).context(env_var.to_string())?
         }
 
         self.env_vars.push((k, v));
