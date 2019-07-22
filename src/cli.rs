@@ -21,3 +21,12 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), Error> {
 
     Ok(())
 }
+
+pub fn start(matches: &clap::ArgMatches) -> Result<(), Error> {
+    let container_id = matches.value_of("container-id").unwrap();
+
+    let mut container = Container::load(container_id)?;
+    container.run()?;
+
+    Ok(())
+}

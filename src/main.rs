@@ -15,5 +15,9 @@ fn main() -> Result<(), Error> {
         cli::run(matches)?;
     }
 
+    if let Some(matches) = matches.subcommand_matches("start") {
+        cli::start(matches)?;
+    }
+
     Ok(())
 }

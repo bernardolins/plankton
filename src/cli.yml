@@ -20,8 +20,8 @@ subcommands:
                 long: bundle
                 takes_value: true
 
-    - state:
-        about: Prints the state of the container
+    - start:
+        about: Starts a stopped container
         args:
             - container-id:
                 index: 1
