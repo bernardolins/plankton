@@ -24,9 +24,23 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), Error> {
 
 pub fn start(matches: &clap::ArgMatches) -> Result<(), Error> {
     let container_id = matches.value_of("container-id").unwrap();
+    Container::start(container_id)?;
 
-    let mut container = Container::load(container_id)?;
-    container.run()?;
+    Ok(())
+}
+
+pub fn query(matches: &clap::ArgMatches) -> Result<(), Error> {
+    let container_id = matches.value_of("container-id").unwrap();
+    let container = Container::query(container_id)?;
+
+    println!(
+        "{0: <20} | {1: <10} | {2: <10}",
+        "ID", "STATUS", "INIT PID"
+    );
+    println!(
+        "{0: <20} | {1: <10} | {2: <10}",
+        container.id(), container.status(), container.init_pid()
+    );
 
     Ok(())
 }

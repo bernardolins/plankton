@@ -27,3 +27,11 @@ subcommands:
                 index: 1
                 required: true
                 help: The id of the new container
+
+    - query:
+        about: Queries container information
+        args:
+            - container-id:
+                index: 1
+                required: true
+                help: The id of the new container

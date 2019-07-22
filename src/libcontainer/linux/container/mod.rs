@@ -19,6 +19,17 @@ pub enum Status {
     Stopped,
 }
 
+impl Status {
+    fn to_str(&self) -> &str {
+        match *self {
+            Status::Creating => "creating",
+            Status::Created => "created",
+            Status::Running => "running",
+            Status::Stopped => "stopped",
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Container {
     id: String,
@@ -28,6 +39,22 @@ pub struct Container {
 }
 
 impl Container {
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn init_pid(&self) -> String {
+        if let Some(pid) = &self.init_pid {
+            return pid.to_string();
+        }
+
+        return "".to_string();
+    }
+
+    pub fn status(&self) -> &str {
+        &self.status.to_str()
+    }
+
     pub fn new(container_id: &str, environment: Environment) -> Result<Container, Error> {
         let container = Container {
             id: String::from(container_id),
@@ -40,24 +67,7 @@ impl Container {
             Err(Error::from("container id already taken".to_string())).context(container_id.to_string())?;
         }
 
-        container.save_state()?;
-        Ok(container)
-    }
-
-    pub fn load(container_id: &str) -> Result<Container, Error> {
-        if !state_file(container_id).exists() {
-            Err(Error::from("container not found".to_string())).context(container_id.to_string())?;
-        }
-
-        let mut container = Container::load_state(container_id)?;
-
-        if container.status != Status::Stopped {
-            Err(Error::from("cannot start a non stopped container".to_string())).context(container_id.to_string())?;
-        }
-
-        container.status = Status::Created;
-        container.save_state()?;
-
+        container.save()?;
         Ok(container)
     }
 
@@ -67,34 +77,54 @@ impl Container {
         }
 
         let init_pid = process::create(&self.environment)?;
-
         self.init_pid = Some(init_pid);
 
         self.status = Status::Created;
-        self.save_state()?;
+        self.save()?;
 
         self.status = Status::Running;
-        self.save_state()?;
+        self.save()?;
 
         process::wait(init_pid)?;
         self.status = Status::Stopped;
-        self.save_state()?;
+        self.save()?;
 
         Ok(())
     }
 
-    fn save_state(&self) -> Result<(), Error> {
-        let json = serde_json::to_string(self).context("cannot save container state".to_string())?;
-        fs::write(state_file(&self.id), json).context(format!("cannot save container state to file {:?}", state_file(&self.id)))?;
-        Ok(())
+    pub fn start(container_id: &str) -> Result<Container, Error> {
+        let mut container = Container::load(container_id)?;
+
+        if container.status != Status::Stopped {
+            Err(Error::from("cannot start a non stopped container".to_string())).context(container_id.to_string())?;
+        }
+
+        container.run()?;
+
+        Ok(container)
     }
 
-    fn load_state(container_id: &str) -> Result<Container, Error> {
+    pub fn query(container_id: &str) -> Result<Container, Error> {
+        Container::load(container_id)
+    }
+
+    fn load(container_id: &str) -> Result<Container, Error> {
+        if !state_file(container_id).exists() {
+            Err(Error::from("container not found".to_string())).context(container_id.to_string())?;
+        }
+
         let state_file_path = state_file(container_id);
         let file = File::open(state_file_path).context("cannot open container state file".to_string())?;
         let reader = BufReader::new(file);
         let container: Container = serde_json::from_reader(reader).context("error loading container state".to_string())?;
+
         Ok(container)
+    }
+
+    fn save(&self) -> Result<(), Error> {
+        let json = serde_json::to_string(self).context("cannot save container state".to_string())?;
+        fs::write(state_file(&self.id), json).context(format!("cannot save container state to file {:?}", state_file(&self.id)))?;
+        Ok(())
     }
 }
 
@@ -168,25 +198,25 @@ mod tests {
     }
 
     #[test]
-    fn container_load_returns_error_if_saved_state_is_not_from_a_stopped_container() {
-        let environment = Environment::new(&["/bin/sh".to_string()], "rootfs");
+    fn container_start_returns_error_if_saved_state_is_not_from_a_stopped_container() {
+        let environment = Environment::new(&["/usr/bin/cd".to_string(), ".".to_string()], "rootfs");
         let container = setup(environment).unwrap();
-        let result = Container::load(&container.id);
+        let result = Container::start(&container.id);
         assert!(result.is_err(), "expected {:?} to be err", result);
         cleanup(&container.id);
     }
 
     #[test]
-    fn container_load_returns_error_if_no_state_is_found() {
-        let result = Container::load("unexistent-container-id");
+    fn container_start_returns_error_if_no_state_is_found() {
+        let result = Container::start("unexistent-container-id");
         assert!(result.is_err(), "expected {:?} to be err", result); }
 
     #[test]
-    fn container_load_returns_ok_with_the_saved_container() {
+    fn container_start_returns_ok_with_the_saved_container() {
         let environment = Environment::new(&["/usr/bin/cd".to_string(), ".".to_string()], "rootfs");
         let mut container = setup(environment).unwrap();
         container.run().unwrap();
-        let result = Container::load(&container.id);
+        let result = Container::start(&container.id);
         assert!(result.is_ok(), "expected {:?} to be err", result);
         cleanup(&container.id);
     }

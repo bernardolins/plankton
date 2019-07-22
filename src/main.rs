@@ -19,5 +19,9 @@ fn main() -> Result<(), Error> {
         cli::start(matches)?;
     }
 
+    if let Some(matches) = matches.subcommand_matches("query") {
+        cli::query(matches)?;
+    }
+
     Ok(())
 }
