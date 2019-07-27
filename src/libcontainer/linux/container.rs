@@ -39,22 +39,6 @@ pub struct Container {
 }
 
 impl Container {
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    pub fn init_pid(&self) -> String {
-        if let Some(pid) = &self.init_pid {
-            return pid.to_string();
-        }
-
-        return "".to_string();
-    }
-
-    pub fn status(&self) -> &str {
-        &self.status.to_str()
-    }
-
     pub fn new(container_id: &str, environment: Environment) -> Result<Container, Error> {
         let container = Container {
             id: String::from(container_id),
@@ -104,8 +88,10 @@ impl Container {
         Ok(container)
     }
 
-    pub fn query(container_id: &str) -> Result<Container, Error> {
-        Container::load(container_id)
+    pub fn query(container_id: &str) -> Result<State, Error> {
+        let container = Container::load(container_id)?;
+        let state = State::from(container);
+        Ok(state)
     }
 
     fn load(container_id: &str) -> Result<Container, Error> {
@@ -131,6 +117,27 @@ impl Container {
 fn state_file(id: &str) -> PathBuf {
     let path = format!("{}/{}.json", STATE_BASE_DIR, id);
     PathBuf::from(path)
+}
+
+#[derive(Debug, Serialize)]
+pub struct State {
+    oci_version: String,
+    id: String,
+    status: String,
+    pid: Option<i32>,
+    bundle: String,
+}
+
+impl From<Container> for State {
+    fn from(container: Container) -> State {
+        State {
+            id: String::from(container.id),
+            pid: container.init_pid,
+            status: String::from(container.status.to_str()),
+            bundle: String::from("/"),
+            oci_version: String::from("1.0.0"),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -209,7 +216,8 @@ mod tests {
     #[test]
     fn container_start_returns_error_if_no_state_is_found() {
         let result = Container::start("unexistent-container-id");
-        assert!(result.is_err(), "expected {:?} to be err", result); }
+        assert!(result.is_err(), "expected {:?} to be err", result);
+    }
 
     #[test]
     fn container_start_returns_ok_with_the_saved_container() {
@@ -219,5 +227,25 @@ mod tests {
         let result = Container::start(&container.id);
         assert!(result.is_ok(), "expected {:?} to be err", result);
         cleanup(&container.id);
+    }
+
+    #[test]
+    fn container_query_returns_the_container_state() {
+        let environment = Environment::new(&["/usr/bin/cd".to_string(), ".".to_string()], "rootfs");
+        let container = setup(environment).unwrap();
+        let result = Container::query(&container.id);
+        assert!(result.is_ok(), "expected {:?} to be ok", &container);
+        let state = result.unwrap();
+        assert_eq!(container.id, state.id);
+        assert_eq!(container.init_pid, state.pid);
+        assert_eq!(container.status.to_str(), state.status);
+
+        cleanup(&container.id);
+    }
+
+    #[test]
+    fn container_query_returns_error_if_container_is_not_found() {
+        let result = Container::query("unexistent-container-id");
+        assert!(result.is_err(), "expected {:?} to be err", result);
     }
 }
