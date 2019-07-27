@@ -71,6 +71,7 @@ impl Container {
 
         process::wait(init_pid)?;
         self.status = Status::Stopped;
+        self.init_pid = None;
         self.save()?;
 
         Ok(())
@@ -184,23 +185,21 @@ mod tests {
     }
 
     #[test]
-    fn container_run_sets_init_pid_when_run_is_ok() {
-        let environment = Environment::new(&["/usr/bin/cd".to_string(), ".".to_string()], "rootfs");
-        let mut container = setup(environment).unwrap();
-        assert_eq!(container.init_pid, None);
-        let result = container.run();
-        assert!(result.is_ok(), "expected {:?} to be ok", result);
-        assert!(container.init_pid.is_some(), "expect {:?} to be Some", &container.init_pid);
-        cleanup(&container.id);
-    }
-
-    #[test]
     fn container_run_sets_status_to_stopped_when_run_exits() {
         let environment = Environment::new(&["/usr/bin/cd".to_string(), ".".to_string()], "rootfs");
         let mut container = setup(environment).unwrap();
         let result = container.run();
         assert!(result.is_ok(), "expected {:?} to be ok", result);
         assert_eq!(container.status, Status::Stopped);
+        cleanup(&container.id);
+    }
+
+    #[test]
+    fn container_run_sets_init_pid_to_none_when_run_exits() {
+        let environment = Environment::new(&["/usr/bin/cd".to_string(), ".".to_string()], "rootfs");
+        let mut container = setup(environment).unwrap();
+        container.run().unwrap();
+        assert!(container.init_pid.is_none());
         cleanup(&container.id);
     }
 
