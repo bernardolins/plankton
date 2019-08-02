@@ -1,3 +1,5 @@
+mod config;
+
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
@@ -5,7 +7,15 @@ use failure::ResultExt;
 use crate::error::Error;
 use crate::filesystem::pathbuf;
 
+pub use self::config::Config;
+
 const CONFIG_FILE_NAME: &str = "config.json";
+
+pub fn load_config(bundle_dir: &str) -> Result<Config, Error> {
+    let config_reader = read_config(bundle_dir)?;
+    let config = Config::load(config_reader)?;
+    Ok(config)
+}
 
 pub fn read_config(bundle_dir: &str) -> Result<BufReader<File>, Error> {
     let bundle_path = canonical_bundle_path(bundle_dir)?;

@@ -4,7 +4,7 @@ pub mod linux;
 use std::convert::TryFrom;
 
 use crate::Error;
-use crate::Config;
+use crate::bundle::Config;
 use crate::libcontainer::Environment;
 use crate::libcontainer::Namespace;
 use crate::libcontainer::NamespaceType;
