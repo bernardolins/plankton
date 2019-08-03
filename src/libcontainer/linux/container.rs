@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use crate::Error;
+use crate::container::Status;
 use crate::libcontainer::linux::process;
 use crate::libcontainer::linux::environment::Environment;
 use serde::Deserialize;
@@ -10,25 +11,6 @@ use serde::Serialize;
 use failure::ResultExt;
 
 const STATE_BASE_DIR: &str = "/run/cr7";
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub enum Status {
-    Creating,
-    Created,
-    Running,
-    Stopped,
-}
-
-impl Status {
-    fn to_str(&self) -> &str {
-        match *self {
-            Status::Creating => "creating",
-            Status::Created => "created",
-            Status::Running => "running",
-            Status::Stopped => "stopped",
-        }
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Container {
@@ -134,7 +116,7 @@ impl From<Container> for State {
         State {
             id: String::from(container.id),
             pid: container.init_pid,
-            status: String::from(container.status.to_str()),
+            status: String::from(container.status.to_string()),
             bundle: String::from("/"),
             oci_version: String::from("1.0.0"),
         }
@@ -237,7 +219,7 @@ mod tests {
         let state = result.unwrap();
         assert_eq!(container.id, state.id);
         assert_eq!(container.init_pid, state.pid);
-        assert_eq!(container.status.to_str(), state.status);
+        assert_eq!(container.status.to_string(), state.status);
 
         cleanup(&container.id);
     }
