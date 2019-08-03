@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use crate::Error;
+use crate::container::State;
 use crate::container::Status;
 use crate::libcontainer::linux::process;
 use crate::libcontainer::linux::environment::Environment;
@@ -100,15 +101,6 @@ impl Container {
 fn state_file(id: &str) -> PathBuf {
     let path = format!("{}/{}.json", STATE_BASE_DIR, id);
     PathBuf::from(path)
-}
-
-#[derive(Debug, Serialize)]
-pub struct State {
-    oci_version: String,
-    id: String,
-    status: String,
-    pid: Option<i32>,
-    bundle: String,
 }
 
 impl From<Container> for State {

@@ -3,7 +3,6 @@ use crate::Error;
 use crate::filesystem;
 use crate::libcontainer::Container;
 use crate::libcontainer::Environment;
-use failure::ResultExt;
 use std::convert::TryFrom;
 
 pub fn run(matches: &clap::ArgMatches) -> Result<(), Error> {
@@ -30,7 +29,7 @@ pub fn start(matches: &clap::ArgMatches) -> Result<(), Error> {
 pub fn query(matches: &clap::ArgMatches) -> Result<(), Error> {
     let container_id = matches.value_of("container-id").unwrap();
     let state = Container::query(container_id)?;
-    let json = serde_json::to_string_pretty(&state).context("error parsing container state".to_string())?;
+    let json = state.to_json()?;
     println!("{}", json);
 
     Ok(())
