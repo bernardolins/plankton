@@ -12,16 +12,12 @@ pub use self::config::Config;
 const CONFIG_FILE_NAME: &str = "config.json";
 
 pub fn load_config(bundle_dir: &str) -> Result<Config, Error> {
-    let config_reader = read_config(bundle_dir)?;
-    let config = Config::load(config_reader)?;
-    Ok(config)
-}
-
-pub fn read_config(bundle_dir: &str) -> Result<BufReader<File>, Error> {
     let bundle_path = canonical_bundle_path(bundle_dir)?;
     let config_path = canonical_config_path(bundle_path)?;
+    let config_reader = read_config_file(config_path)?;
 
-    read_config_file(config_path)
+    let config = Config::load(config_reader)?;
+    Ok(config)
 }
 
 fn canonical_bundle_path(bundle_dir: &str) -> Result<PathBuf, Error> {
@@ -44,39 +40,61 @@ fn read_config_file(path: PathBuf) -> Result<BufReader<File>, Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
     use std::fs::File;
     use tempfile::{tempdir, TempDir};
+    use serde_json::json;
 
     fn setup_bundle(config_file_name: Option<&str>) -> TempDir {
         let dir = tempdir().unwrap();
         if config_file_name.is_some() {
+            let contents = json!({
+                "ociVersion": "1.0.1-dev",
+                "hostname": "my-container",
+                "process": {
+                    "terminal": true,
+                    "args": ["sh"],
+                    "env": ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],
+                    "cwd": "/",
+                    "rlimits": [{"type": "RLIMIT_NOFILE", "hard": 1024, "soft": 1024}],
+                },
+                "root": {
+                    "path": "rootfs",
+                    "readonly": true
+                },
+                "mounts": [{"destination": "/proc", "type": "proc", "source": "/proc"}],
+                "linux": {
+                    "namespaces": [{ "type": "pid" }]
+                }
+            });
+
             let file_path = dir.path().join(config_file_name.unwrap());
-            File::create(file_path).unwrap();
+            File::create(&file_path).unwrap();
+            fs::write(&file_path, serde_json::to_string(&contents).unwrap()).unwrap();
         }
 
         return dir;
     }
 
     #[test]
-    fn bundle_config_file_return_error_when_bundle_path_does_not_exists() {
-        let result = read_config("/some/invalid/path");
+    fn bundle_load_config_return_error_when_bundle_path_does_not_exists() {
+        let result = load_config("/some/invalid/path");
         assert!(result.is_err(), "expected {:?} to be err", &result);
     }
 
     #[test]
-    fn bundle_config_file_return_error_when_config_file_is_missing() {
+    fn bundle_load_config_return_error_when_config_file_is_missing() {
         let bundle = setup_bundle(None);
         let bundle_path = bundle.path().to_str().unwrap();
-        let result = read_config(bundle_path);
+        let result = load_config(bundle_path);
         assert!(result.is_err(), "expected {:?} to be err", &result);
     }
 
     #[test]
-    fn bundle_config_file_return_ok_with_a_bufreader_for_config_file() {
+    fn bundle_load_config_return_ok_with_a_valid_config_file() {
         let bundle = setup_bundle(Some("config.json"));
         let bundle_path = bundle.path().to_str().unwrap();
-        let result = read_config(bundle_path);
+        let result = load_config(bundle_path);
         assert!(result.is_ok(), "expected {:?} to be ok", &result);
     }
 }
-
