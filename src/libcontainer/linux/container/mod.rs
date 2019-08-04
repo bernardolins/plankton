@@ -1,5 +1,6 @@
 mod state;
 mod operations;
+mod config;
 
 use std::fs;
 use std::fs::File;

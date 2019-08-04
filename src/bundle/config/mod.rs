@@ -2,8 +2,6 @@ pub mod root;
 pub mod process;
 pub mod mount;
 
-mod conv;
-
 #[cfg(target_os = "linux")]
 pub mod linux;
 

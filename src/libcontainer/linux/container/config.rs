@@ -1,8 +1,3 @@
-#[cfg(target_os = "linux")]
-pub mod linux;
-
-use std::convert::TryFrom;
-
 use crate::Error;
 use crate::bundle::Config;
 use crate::libcontainer::Environment;
@@ -11,6 +6,7 @@ use crate::libcontainer::NamespaceType;
 use crate::libcontainer::MountPoint;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::rlimit::ResourceType;
+use std::convert::TryFrom;
 
 impl TryFrom<Config> for Environment {
     type Error = Error;
