@@ -1,6 +1,7 @@
 mod state;
 mod operations;
 mod config;
+mod init_process;
 
 use std::fs;
 use std::fs::File;
@@ -9,7 +10,6 @@ use std::path::PathBuf;
 use crate::Error;
 use crate::container::State;
 use crate::container::Status;
-use crate::libcontainer::linux::process;
 use crate::libcontainer::linux::environment::Environment;
 use serde::Deserialize;
 use serde::Serialize;
@@ -47,7 +47,7 @@ impl Container {
             namespace.enter()?;
         }
 
-        let init_pid = process::create(&self.environment)?;
+        let init_pid = init_process::create(&self.environment)?;
         self.init_pid = Some(init_pid);
 
         self.status = Status::Created;
@@ -56,7 +56,7 @@ impl Container {
         self.status = Status::Running;
         self.save()?;
 
-        process::wait(init_pid)?;
+        init_process::wait(init_pid)?;
         self.status = Status::Stopped;
         self.init_pid = None;
         self.save()?;
