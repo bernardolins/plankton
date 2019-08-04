@@ -2,7 +2,7 @@ use crate::Error;
 use crate::bundle;
 use crate::container::Operations;
 use super::Container;
-use crate::libcontainer::Environment;
+use crate::libcontainer::linux::container::environment::Environment;
 use std::convert::TryFrom;
 
 impl Operations for Container {

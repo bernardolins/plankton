@@ -15,7 +15,7 @@ use crate::Error;
 use crate::filesystem::pathbuf;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
-use crate::libcontainer::linux::environment::Environment;
+use crate::libcontainer::linux::container::environment::Environment;
 
 use failure::ResultExt;
 

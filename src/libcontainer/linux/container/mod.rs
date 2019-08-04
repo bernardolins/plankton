@@ -2,6 +2,7 @@ mod state;
 mod operations;
 mod config;
 mod init_process;
+mod environment;
 
 use std::fs;
 use std::fs::File;
@@ -10,7 +11,7 @@ use std::path::PathBuf;
 use crate::Error;
 use crate::container::State;
 use crate::container::Status;
-use crate::libcontainer::linux::environment::Environment;
+use self::environment::Environment;
 use serde::Deserialize;
 use serde::Serialize;
 use failure::ResultExt;
