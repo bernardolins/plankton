@@ -1,20 +1,14 @@
-use crate::bundle;
 use crate::Error;
 use crate::filesystem;
+use crate::container::Operations;
 use crate::libcontainer::Container;
-use crate::libcontainer::Environment;
-use std::convert::TryFrom;
 
 pub fn run(matches: &clap::ArgMatches) -> Result<(), Error> {
     let cwd = filesystem::cwd();
     let container_id = matches.value_of("container-id").unwrap();
     let bundle_dir = matches.value_of("bundle").unwrap_or(&cwd);
 
-    let config = bundle::load_config(bundle_dir)?;
-    let environment = Environment::try_from(config)?;
-
-    let mut container = Container::new(container_id, environment)?;
-    container.run()?;
+    Container::create(container_id, bundle_dir)?;
 
     Ok(())
 }
