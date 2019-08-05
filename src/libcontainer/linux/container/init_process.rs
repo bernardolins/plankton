@@ -15,13 +15,13 @@ use crate::Error;
 use crate::filesystem::pathbuf;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
-use crate::libcontainer::linux::container::environment::Environment;
+use crate::libcontainer::linux::container::Container;
 
 use failure::ResultExt;
 
-pub fn create(environment: &Environment) -> Result<i32, Error> {
+pub fn create(container: &Container) -> Result<i32, Error> {
     let stack = &mut[0; 1024*1024];
-    let exec_fn = Box::new(|| child(&environment));
+    let exec_fn = Box::new(|| child(&container));
 
     let pid = sched::clone(exec_fn, stack, CloneFlags::empty(), None)?;
     Ok(pid.as_raw())
@@ -32,8 +32,8 @@ pub fn wait(pid: i32) -> Result<(), Error> {
     Ok(())
 }
 
-fn child(environment: &Environment) -> isize {
-    if let Err(err) = try_create_container(environment) {
+fn child(container: &Container) -> isize {
+    if let Err(err) = try_create_container(container) {
         eprintln!("Error: {}", err);
         process::exit(exitcode::OSERR);
     }
@@ -41,14 +41,14 @@ fn child(environment: &Environment) -> isize {
     return 0;
 }
 
-fn try_create_container(environment: &Environment) -> Result<(), Error> {
-    try_set_chroot(environment.rootfs())?;
-    try_set_env_vars(environment.env_vars());
-    try_set_mount_points(environment.mount_list())?;
-    try_set_working_dir(environment.working_dir())?;
-    try_set_hostname(environment.hostname())?;
-    try_set_rlimits(environment.rlimits())?;
-    try_exec(environment.argv())?;
+fn try_create_container(container: &Container) -> Result<(), Error> {
+    try_set_chroot(container.environment.rootfs())?;
+    try_set_env_vars(container.environment.env_vars());
+    try_set_mount_points(container.environment.mount_list())?;
+    try_set_working_dir(container.environment.working_dir())?;
+    try_set_hostname(container.environment.hostname())?;
+    try_set_rlimits(container.environment.rlimits())?;
+    try_exec(container.environment.argv())?;
     Ok(())
 }
 

@@ -48,7 +48,7 @@ impl Container {
             namespace.enter()?;
         }
 
-        let init_pid = init_process::create(&self.environment)?;
+        let init_pid = init_process::create(&self)?;
         self.init_pid = Some(init_pid);
 
         self.status = Status::Created;
