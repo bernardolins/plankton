@@ -41,6 +41,10 @@ impl Environment {
     }
 
     pub fn spawn_process(&self) -> Result<i32, Error> {
+        for namespace in self.namespaces.as_vec() {
+            namespace.enter()?;
+        }
+
         process::clone(&self)
     }
 
