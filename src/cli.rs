@@ -1,7 +1,8 @@
 use crate::Error;
 use crate::filesystem;
-use crate::container::Operations;
-use crate::libcontainer::Container;
+//use crate::container::Operations;
+//use crate::libcontainer::Container;
+use crate::container::Container;
 
 pub fn run(matches: &clap::ArgMatches) -> Result<(), Error> {
     let cwd = filesystem::cwd();
@@ -14,17 +15,18 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), Error> {
 }
 
 pub fn start(matches: &clap::ArgMatches) -> Result<(), Error> {
+    /*
     let container_id = matches.value_of("container-id").unwrap();
     Container::start(container_id)?;
+    */
 
     Ok(())
 }
 
 pub fn query(matches: &clap::ArgMatches) -> Result<(), Error> {
     let container_id = matches.value_of("container-id").unwrap();
-    let state = Container::query(container_id)?;
-    let json = state.to_json()?;
-    println!("{}", json);
+    let state = Container::state(container_id)?;
+    println!("{}", state);
 
     Ok(())
 }
