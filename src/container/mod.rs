@@ -20,10 +20,10 @@ const CONTAINER_DIR: &str = "/run/cr7";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Container {
+    bundle: PathBuf,
     id: String,
     pid: Option<i32>,
     status: Status,
-    bundle: PathBuf,
 }
 
 impl Container {
@@ -82,8 +82,112 @@ impl Container {
         Ok(container)
     }
 
+    fn delete(container_id: &str) -> Result<(), Error> {
+        let file_path = Container::file_path(container_id);
+        fs::remove_file(file_path).context("error deleting container state file".to_string())?;
+        Ok(())
+    }
+
     fn file_path(container_id: &str) -> PathBuf {
         let path = format!("{}/{}.json", CONTAINER_DIR, container_id);
         PathBuf::from(path)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    use std::fs;
+    use std::fs::File;
+    use tempfile::{tempdir, TempDir};
+
+    fn setup_bundle(config_file_name: Option<&str>) -> TempDir {
+        let dir = tempdir().unwrap();
+        if config_file_name.is_some() {
+            let contents = json!({
+                "ociVersion": "1.0.1-dev",
+                "hostname": "my-container",
+                "process": {
+                    "terminal": true,
+                    "args": ["cd", "."],
+                    "env": ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],
+                    "cwd": "/",
+                    "rlimits": [{"type": "RLIMIT_NOFILE", "hard": 1024, "soft": 1024}],
+                },
+                "root": {
+                    "path": "rootfs",
+                    "readonly": true
+                },
+                "mounts": [{"destination": "/proc", "type": "proc", "source": "/proc"}],
+                "linux": {
+                    "namespaces": [{ "type": "pid" },{ "type": "uts" }]
+                }
+            });
+
+            let file_path = dir.path().join(config_file_name.unwrap());
+            File::create(&file_path).unwrap();
+            fs::write(&file_path, serde_json::to_string(&contents).unwrap()).unwrap();
+        }
+
+        return dir;
+    }
+
+    #[test]
+    fn container_create_returns_error_if_container_already_exist() {
+        let container_id = "my-container-id";
+        let container = Container {
+            id: String::from(container_id),
+            bundle: PathBuf::from("/containers/mycontainer"),
+            status: Status::Creating,
+            pid: Some(5327),
+        };
+        container.save().unwrap();
+
+        let bundle = setup_bundle(Some("config.json"));
+        let bundle_path = bundle.path().to_str().unwrap();
+        let result = Container::create(container_id, bundle_path);
+        assert!(result.is_err());
+        Container::delete(container_id).unwrap();
+    }
+
+    #[test]
+    fn container_create_returns_ok_when_container_finish_to_run() {
+        let container_id = "my-container-id";
+        let bundle = setup_bundle(Some("config.json"));
+        let bundle_path = bundle.path().to_str().unwrap();
+        let result = Container::create(container_id, bundle_path);
+        assert!(result.is_ok(), "expected {:?} to be ok", &result);
+    }
+
+    #[test]
+    fn container_state_returns_error_when_container_is_not_found() {
+        let result = Container::state("unexistent-containter");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn container_state_returns_the_json_version_of_container() {
+        let container_id = "my-container-id";
+        let container = Container {
+            id: String::from(container_id),
+            bundle: PathBuf::from("/containers/mycontainer"),
+            status: Status::Creating,
+            pid: Some(5327),
+        };
+
+        container.save().unwrap();
+
+        let json_state = json!({
+            "id": "my-container-id",
+            "status": "Creating",
+            "pid": Some(5327),
+            "bundle": "/containers/mycontainer",
+        });
+
+        let result = Container::state(container_id);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), serde_json::to_string_pretty(&json_state).unwrap());
+        Container::delete(container_id).unwrap();
     }
 }

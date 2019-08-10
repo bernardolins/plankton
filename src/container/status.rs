@@ -1,7 +1,8 @@
+use std::fmt;
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(PartialEq, Serialize, Deserialize)]
 pub enum Status {
     Creating,
     Created,
@@ -9,8 +10,8 @@ pub enum Status {
     Stopped,
 }
 
-impl Status {
-    pub fn to_string(&self) -> String {
+impl fmt::Debug for Status {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let status = match *self {
             Status::Creating => "creating",
             Status::Created => "created",
@@ -18,7 +19,7 @@ impl Status {
             Status::Stopped => "stopped",
         };
 
-        status.to_string()
+        write!(f, "{}", status)
     }
 }
 
@@ -27,7 +28,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn to_str_returns_the_str_version_of_status() {
+    fn status_implements_debug_trait() {
         let table = vec![
             (Status::Creating, "creating"),
             (Status::Created, "created"),
@@ -36,7 +37,7 @@ mod tests {
         ];
 
         for (original, expect) in table {
-            let result = original.to_string();
+            let result = format!("{:?}", original);
             assert_eq!(result, expect);
         }
 
