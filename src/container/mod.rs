@@ -65,6 +65,9 @@ impl Container {
     }
 
     fn save(&self) -> Result<(), Error> {
+        if !PathBuf::from(CONTAINER_DIR).exists() {
+            fs::create_dir_all(CONTAINER_DIR).context(format!("error creating state dir {}", CONTAINER_DIR))?;
+        }
         let file = Container::file_path(&self.id);
         let json = serde_json::to_string(self).context("cannot save container state".to_string())?;
         fs::write(&file, json).context(format!("cannot save container state to file {:?}", &file))?;
