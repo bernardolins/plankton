@@ -16,7 +16,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 
-const CONTAINER_DIR: &str = "/run/cr7";
+const CONTAINER_DIR: &str = "/run/plankton";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Container {

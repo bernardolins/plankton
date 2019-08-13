@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate clap;
-extern crate cr7;
+extern crate plankton;
 
-use cr7::cli;
-use cr7::Error;
+use plankton::cli;
+use plankton::Error;
 
 use clap::App;
 

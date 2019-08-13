@@ -13,7 +13,7 @@ To create the VM, just run:
 ```
 vagrant up
 ```
-This command will mount the repository dir at `/opt/cr7`. After the VM setup, just log into it:
+This command will mount the repository dir at `/opt/plankton`. After the VM setup, just log into it:
 
 ```
 vagrant ssh
