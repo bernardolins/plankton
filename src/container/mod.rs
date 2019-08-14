@@ -4,13 +4,11 @@ pub mod status;
 pub use self::state::State;
 pub use self::status::Status;
 
-use crate::bundle;
 use crate::Error;
 use crate::libcontainer::Environment;
 use failure::ResultExt;
 use serde::Serialize;
 use serde::Deserialize;
-use std::convert::TryFrom;
 use std::fs;
 use std::fs::File;
 use std::io::BufReader;
@@ -32,8 +30,7 @@ impl Container {
             Err(Error::from("container id already taken".to_string())).context(container_id.to_string())?;
         }
 
-        let config = bundle::load_config(bundle_dir)?;
-        let environment = Environment::try_from(config)?;
+        let environment = Environment::build(bundle_dir)?;
 
         let mut container = Container {
             id: String::from(container_id),

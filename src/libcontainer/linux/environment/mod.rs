@@ -27,10 +27,10 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn new(argv: &[String], rootfs: &str) -> Environment {
+    pub fn new(argv: &[String], rootfs: PathBuf) -> Environment {
         Environment {
             argv: argv.to_vec(),
-            rootfs: PathBuf::from(rootfs),
+            rootfs: rootfs,
             working_dir: PathBuf::from(DEFAULT_WORKING_DIR),
             hostname: None,
             namespaces: NamespaceList::empty(),
@@ -118,7 +118,7 @@ mod tests {
     use crate::libcontainer::linux::rlimit::ResourceType;
 
     fn setup_environment() -> Environment {
-        Environment::new(&["sh".to_string()], "rootfs")
+        Environment::new(&["sh".to_string()], PathBuf::from("rootfs"))
     }
 
     #[test]

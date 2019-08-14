@@ -1,22 +1,19 @@
 use crate::Error;
-use crate::bundle::Config;
+use crate::bundle;
 use crate::libcontainer::Namespace;
 use crate::libcontainer::NamespaceType;
 use crate::libcontainer::MountPoint;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::rlimit::ResourceType;
-use std::convert::TryFrom;
+use std::path::PathBuf;
 use super::Environment;
 
-impl TryFrom<Config> for Environment {
-    type Error = Error;
-
-    fn try_from(config: Config) -> Result<Self, Self::Error> {
-        let boxed_config: Box<Config> = Box::new(config);
-        let config = Box::leak(boxed_config);
+impl Environment {
+    pub fn build(bundle_dir: &str) -> Result<Environment, Error> {
+        let config = bundle::load_config(bundle_dir)?;
 
         let argv = config.process().args();
-        let rootfs = config.root().path();
+        let rootfs = PathBuf::from(bundle_dir).join(config.root().path());
         let mut environment = Environment::new(&argv[..], rootfs);
 
         let working_dir = config.process().cwd();
