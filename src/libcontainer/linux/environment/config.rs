@@ -7,6 +7,7 @@ use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::rlimit::ResourceType;
 use std::path::PathBuf;
 use super::Environment;
+use failure::ResultExt;
 
 impl Environment {
     pub fn build(bundle_dir: &str) -> Result<Environment, Error> {
@@ -14,6 +15,10 @@ impl Environment {
 
         let argv = config.process().args();
         let rootfs = PathBuf::from(bundle_dir).join(config.root().path());
+
+        if !rootfs.exists() {
+            Err(Error::from("bundle does not have a rootfs".to_string())).context(format!("{:?}", rootfs))?;
+        }
         let mut environment = Environment::new(&argv[..], rootfs);
 
         let working_dir = config.process().cwd();

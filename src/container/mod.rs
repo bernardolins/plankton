@@ -125,6 +125,8 @@ mod tests {
                 }
             });
 
+            let rootpath = dir.path().join(PathBuf::from("rootfs"));
+            fs::create_dir_all(rootpath).unwrap();
             let file_path = dir.path().join(config_file_name.unwrap());
             File::create(&file_path).unwrap();
             fs::write(&file_path, serde_json::to_string(&contents).unwrap()).unwrap();
