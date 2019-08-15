@@ -40,7 +40,12 @@ impl Container {
         };
         container.save()?;
 
-        let init_pid = environment.spawn_process()?;
+        let spawn_result = environment.spawn_process();
+        if spawn_result.is_err() {
+            Container::delete(container_id)?;
+        }
+
+        let init_pid = spawn_result.ok().unwrap();
         container.pid = Some(init_pid);
         container.status = Status::Created;
         container.save()?;
@@ -48,7 +53,10 @@ impl Container {
         container.status = Status::Running;
         container.save()?;
 
-        Environment::wait_process(init_pid)?;
+        let wait_result = Environment::wait_process(init_pid);
+        if wait_result.is_err() {
+            Container::delete(container_id)?;
+        }
         container.status = Status::Stopped;
         container.save()?;
 
