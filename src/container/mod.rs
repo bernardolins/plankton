@@ -18,7 +18,7 @@ const CONTAINER_DIR: &str = "/run/plankton";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Container {
-    bundle: PathBuf,
+    bundle: String,
     id: String,
     pid: Option<i32>,
     status: Status,
@@ -30,35 +30,42 @@ impl Container {
             Err(Error::from("container id already taken".to_string())).context(container_id.to_string())?;
         }
 
-        let environment = Environment::build(bundle_dir)?;
-
-        let mut container = Container {
+        let container = Container {
             id: String::from(container_id),
-            bundle: PathBuf::from(bundle_dir),
+            bundle: String::from(bundle_dir),
             status: Status::Creating,
             pid: None,
         };
         container.save()?;
+
+        Ok(())
+    }
+
+    pub fn start(container_id: &str) -> Result<(), Error> {
+        let mut container = Container::load(container_id)?;
+
+        if container.status != Status::Creating && container.status != Status::Stopped {
+            Err(Error::from("cannot start a non stopped container".to_string())).context(container_id.to_string())?;
+        }
+        let environment = Environment::build(&container.bundle)?;
 
         let spawn_result = environment.spawn_process();
         if spawn_result.is_err() {
             Container::delete(container_id)?;
         }
 
+        container.update_status(Status::Created)?;
+
         let init_pid = spawn_result.ok().unwrap();
         container.pid = Some(init_pid);
-        container.status = Status::Created;
-        container.save()?;
 
-        container.status = Status::Running;
-        container.save()?;
+        container.update_status(Status::Running)?;
 
         let wait_result = Environment::wait_process(init_pid);
         if wait_result.is_err() {
             Container::delete(container_id)?;
         }
-        container.status = Status::Stopped;
-        container.save()?;
+        container.update_status(Status::Stopped)?;
 
         Ok(())
     }
@@ -67,6 +74,12 @@ impl Container {
         let container = Container::load(container_id)?;
         let json = serde_json::to_string_pretty(&container).context("cannot save container state".to_string())?;
         Ok(json)
+    }
+
+    fn update_status(&mut self, status: Status) -> Result<(), Error> {
+        self.status = status;
+        self.save()?;
+        Ok(())
     }
 
     fn save(&self) -> Result<(), Error> {
@@ -148,7 +161,7 @@ mod tests {
         let container_id = "my-container-id";
         let container = Container {
             id: String::from(container_id),
-            bundle: PathBuf::from("/containers/mycontainer"),
+            bundle: String::from("/containers/mycontainer"),
             status: Status::Creating,
             pid: Some(5327),
         };
@@ -181,7 +194,7 @@ mod tests {
         let container_id = "my-container-id";
         let container = Container {
             id: String::from(container_id),
-            bundle: PathBuf::from("/containers/mycontainer"),
+            bundle: String::from("/containers/mycontainer"),
             status: Status::Creating,
             pid: Some(5327),
         };
