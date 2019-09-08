@@ -1,26 +1,36 @@
 use crate::Error;
 use failure::ResultExt;
 use nix::mount::MsFlags;
+use std::path::PathBuf;
 
-pub fn extract_flags(options: Option<Vec<&str>>) -> Result<Vec<MsFlags>, Error> {
-    if options.is_none() {
-        Ok(None)?;
-    }
-
-    let options_vec = options.unwrap_or(Vec::<&str>::new());
-    let mut flags: Vec<MsFlags>;
-    options_vec.iter().map(|option|
+pub fn extract_flags(options: Option<Vec<String>>) -> Result<MsFlags, Error> {
+    let options_vec = options.unwrap_or(Vec::<String>::new());
+    let mut ms_flags = MsFlags::empty();
+    for option in options_vec {
         if !option.contains("=") {
-            let flag = parse_flag(option)?;
-            flags.push(flag);
+            let ms_flag = parse_flag(&option)?;
+            ms_flags.insert(ms_flag);
         }
-    );
+    }
+    Ok(ms_flags)
+}
 
-    Ok(flags)
+pub fn extract_data(options: Option<Vec<String>>) -> Result<Option<PathBuf>, Error> {
+    let options_vec = options.unwrap_or(Vec::<String>::new());
+    let mut data_vec = Vec::new();
+    for option in options_vec {
+        if option.contains("=") {
+            data_vec.push(option);
+        }
+    }
+    let opts = data_vec.join(",");
+    let path = PathBuf::from(opts);
+    Ok(Some(path))
 }
 
 fn parse_flag(flag: &str) -> Result<MsFlags, Error> {
     match flag {
+        "ro" => Ok(MsFlags::MS_RDONLY),
         "rdonly" => Ok(MsFlags::MS_RDONLY),
         "nosuid" => Ok(MsFlags::MS_NOSUID),
         "nodev" => Ok(MsFlags::MS_NODEV),

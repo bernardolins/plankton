@@ -50,8 +50,9 @@ impl Environment {
             let source = mount.source();
             let destination = mount.destination();
             let filesystem_type = mount.filesystem_type();
+            let options = mount.options();
 
-            let mount_point = MountPoint::create(source, destination, filesystem_type);
+            let mount_point = MountPoint::create(source, destination, filesystem_type, options);
             environment.add_mount_point(mount_point);
         }
 
