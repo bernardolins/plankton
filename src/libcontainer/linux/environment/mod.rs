@@ -227,7 +227,7 @@ mod tests {
     #[test]
     fn environment_add_mount_point() {
         let mut environment = setup_environment();
-        let mount_point = MountPoint::create(Some("/tmp"), "/tmp", Some("tmpfs"));
+        let mount_point = MountPoint::create(Some("/tmp"), "/tmp", Some("tmpfs"), None);
 
         environment.add_mount_point(mount_point);
 

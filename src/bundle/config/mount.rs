@@ -5,6 +5,7 @@ use serde::{Serialize, Deserialize};
 pub struct Mount {
     destination: String,
     source: Option<String>,
+    options: Option<Vec<String>>,
 
     #[cfg(target_os = "linux")] r#type: Option<String>,
 }
@@ -23,6 +24,14 @@ impl Mount {
     pub fn filesystem_type(&self) -> Option<&str> {
         if let Some(r#type) = &self.r#type {
             Some(&r#type)
+        } else {
+            None
+        }
+    }
+
+    pub fn options(&self) -> Option<Vec<String>> {
+        if let Some(options) = &self.options {
+            Some(options.clone())
         } else {
             None
         }
