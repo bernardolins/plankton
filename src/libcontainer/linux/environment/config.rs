@@ -3,6 +3,7 @@ use crate::bundle;
 use crate::libcontainer::Namespace;
 use crate::libcontainer::NamespaceType;
 use crate::libcontainer::MountPoint;
+use crate::libcontainer::linux::user::User;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::rlimit::ResourceType;
 use std::path::PathBuf;
@@ -62,6 +63,10 @@ impl Environment {
                 let rlim = Rlimit::new(resource, rlimit.soft(), rlimit.hard());
                 environment.add_rlimit(rlim);
             }
+        }
+
+        if let Some(user) = config.process().user() {
+            environment.set_user(User::new(user.uid(), user.gid(), user.additional_gids().clone()));
         }
 
         Ok(environment)

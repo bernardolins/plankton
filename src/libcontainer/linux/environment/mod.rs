@@ -4,6 +4,7 @@ mod config;
 use crate::Error;
 use crate::libcontainer::linux::rlimit::Rlimit;
 use crate::libcontainer::linux::mount::MountPoint;
+use crate::libcontainer::linux::user::User;
 use crate::libcontainer::linux::namespace::Namespace;
 use crate::libcontainer::linux::namespace::NamespaceType;
 use crate::libcontainer::linux::namespace::NamespaceList;
@@ -24,6 +25,7 @@ pub struct Environment {
     mount_list: Vec<MountPoint>,
     env_vars: Vec<(String, String)>,
     rlimits: Vec<Rlimit>,
+    user: User,
 }
 
 impl Environment {
@@ -37,6 +39,7 @@ impl Environment {
             mount_list: Vec::new(),
             env_vars: Vec::new(),
             rlimits: Vec::new(),
+            user: User::root(),
         }
     }
 
@@ -103,6 +106,10 @@ impl Environment {
     pub fn add_rlimit(&mut self, rlimit: Rlimit) {
         self.rlimits.push(rlimit);
     }
+
+    pub fn set_user(&mut self, user: User) {
+        self.user = user;
+    }
 }
 
 #[cfg(test)]
@@ -110,10 +117,8 @@ mod tests {
     use super::*;
 
     use std::path::PathBuf;
-
     use crate::libcontainer::linux::namespace::Namespace;
     use crate::libcontainer::linux::namespace::NamespaceType;
-
     use crate::libcontainer::linux::rlimit::Rlimit;
     use crate::libcontainer::linux::rlimit::ResourceType;
 
@@ -274,5 +279,15 @@ mod tests {
         environment.add_rlimit(rlimit);
 
         assert_eq!(environment.rlimits.len(), 1);
+    }
+
+    #[test]
+    fn environment_set_user() {
+        let mut environment = setup_environment();
+        let user = User::root();
+
+        environment.set_user(user);
+
+        assert_eq!(environment.user, User::root());
     }
 }
