@@ -1,5 +1,7 @@
 #[cfg(target_os = "linux")]
 pub mod rlimit;
+#[cfg(target_os = "linux")]
+pub mod user;
 
 use serde::{Serialize, Deserialize};
 
@@ -12,6 +14,9 @@ pub struct Process {
 
     #[cfg(target_os = "linux")]
     rlimits: Option<Vec<rlimit::Rlimit>>,
+
+    #[cfg(target_os = "linux")]
+    user: Option<user::User>,
 }
 
 impl Process {
@@ -21,4 +26,7 @@ impl Process {
 
     #[cfg(target_os = "linux")]
     pub fn rlimits(&self) -> &Option<Vec<rlimit::Rlimit>> { &self.rlimits }
+
+    #[cfg(target_os = "linux")]
+    pub fn user(&self) -> &Option<user::User> { &self.user}
 }
