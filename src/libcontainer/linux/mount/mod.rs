@@ -32,8 +32,6 @@ impl MountPoint {
         let filesystem_type = self.filesystem_type.clone();
         let flags = mount_flags::extract_flags(self.options.clone())?;
         let data = mount_flags::extract_data(self.options.clone())?;
-        println!("{:?}", &flags);
-        println!("{:?}", &data);
         mount::mount(
             source.as_ref() as Option<&PathBuf>,
             &destination as &PathBuf,
