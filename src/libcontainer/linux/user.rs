@@ -20,6 +20,14 @@ impl User {
             additional_gids: None,
         }
     }
+
+    pub fn uid(&self) -> i64 {
+        self.uid
+    }
+
+    pub fn gid(&self) -> i64 {
+        self.uid
+    }
 }
 
 
