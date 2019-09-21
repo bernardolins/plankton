@@ -1,12 +1,15 @@
 use crate::Error;
 use crate::filesystem::pathbuf;
 use crate::libcontainer::linux::rlimit::Rlimit;
+use crate::libcontainer::linux::user::User;
 use crate::libcontainer::linux::mount::MountPoint;
 use failure::ResultExt;
 use nix::sched;
 use nix::unistd;
 use nix::sys::wait;
 use nix::unistd::Pid;
+use nix::unistd::Uid;
+use nix::unistd::Gid;
 use nix::sched::CloneFlags;
 use nix::sys::wait::WaitPidFlag;
 use std::env;
@@ -44,6 +47,7 @@ fn try_create_environment(environment: &Environment) -> Result<(), Error> {
     apply_working_dir(&environment.working_dir)?;
     apply_hostname(&environment.hostname)?;
     apply_rlimits(&environment.rlimits)?;
+    apply_user(&environment.user)?;
     try_exec(&environment.argv)?;
     Ok(())
 }
@@ -84,6 +88,16 @@ fn apply_rlimits(rlimits: &Vec<Rlimit>) -> Result<(), Error> {
     for rlimit in rlimits {
         rlimit.set()?;
     }
+    Ok(())
+}
+
+fn apply_user(user: &User) -> Result<(), Error> {
+    let uid = Uid::from_raw(user.uid() as u32);
+    unistd::setuid(uid).context(format!("cannot set user id {}", uid))?;
+
+    let gid = Gid::from_raw(user.gid() as u32);
+    unistd::setgid(gid).context(format!("cannot set group id {}", gid))?;
+
     Ok(())
 }
 
