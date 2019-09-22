@@ -11,6 +11,13 @@ pub use self::config::Config;
 
 const CONFIG_FILE_NAME: &str = "config.json";
 
+pub trait Bundle {
+    type Config;
+
+    fn check(&self) -> Result<(), Error>;
+    fn load_config(&self) -> Result<Self::Config, Error>;
+}
+
 pub fn load_config(bundle_dir: &str) -> Result<Config, Error> {
     let bundle_path = canonical_bundle_path(bundle_dir)?;
     let config_path = canonical_config_path(bundle_path)?;
