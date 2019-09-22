@@ -13,5 +13,6 @@ pub mod cli;
 pub mod error;
 pub mod filesystem;
 pub mod libcontainer;
+pub mod platform;
 
 pub use self::error::Error;
