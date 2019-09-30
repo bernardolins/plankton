@@ -8,6 +8,7 @@ extern crate failure;
 extern crate exitcode;
 
 pub mod bundle;
+pub mod spec;
 pub mod container;
 pub mod cli;
 pub mod error;
