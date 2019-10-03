@@ -14,7 +14,7 @@ pub use self::config::Config;
 const CONFIG_FILE_NAME: &str = "config.json";
 
 #[derive(Debug)]
-struct Bundle<S: Spec> {
+pub struct Bundle<S: Spec> {
     path: PathBuf,
     bundle_type: PhantomData<S>,
 }
