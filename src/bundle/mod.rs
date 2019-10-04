@@ -20,14 +20,14 @@ pub struct Bundle<S: Spec> {
 }
 
 impl<S: Spec> Bundle<S> {
-    fn open(dir: &str) -> Result<Bundle<S>, Error> {
+    pub fn open(dir: &str) -> Result<Bundle<S>, Error> {
         let bundle_path = PathBuf::from(dir);
         let path = bundle_path.canonicalize().context(format!("{:?}", bundle_path))?;
         let bundle_type = PhantomData;
         Ok(Bundle { path, bundle_type })
     }
 
-    fn load_config(&self) -> Result<S, Error> {
+    pub fn load_config(&self) -> Result<S, Error> {
         let config_file_path = self.path.join(CONFIG_FILE_NAME);
         let file = File::open(&config_file_path).context(format!("{:?}", config_file_path))?;
         let config_reader = BufReader::new(file);
