@@ -12,6 +12,7 @@ pub mod spec;
 pub mod container;
 pub mod cli;
 pub mod error;
+pub mod mount;
 pub mod filesystem;
 pub mod libcontainer;
 

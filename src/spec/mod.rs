@@ -19,7 +19,5 @@ pub trait Spec {
 }
 
 pub trait FromSpec<S: Spec> {
-    type Error;
-
     fn from_spec(spec: S) -> Result<Self, Error> where Self: Sized;
 }
