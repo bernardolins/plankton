@@ -15,5 +15,6 @@ pub mod error;
 pub mod mount;
 pub mod filesystem;
 pub mod libcontainer;
+pub mod process;
 
 pub use self::error::Error;
