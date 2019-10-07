@@ -16,7 +16,7 @@ pub use self::linux::Namespace;
 
 use crate::spec::Spec;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PosixSpec {
     oci_version: String,
