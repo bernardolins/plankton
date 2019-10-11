@@ -3,7 +3,7 @@ use crate::spec::FromSpec;
 use crate::spec::PosixSpec;
 use std::path::PathBuf;
 
-struct LinuxRootFS {
+pub struct LinuxRootFS {
     path: PathBuf,
     ro: bool,
 }

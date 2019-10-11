@@ -1,4 +1,5 @@
 mod linux;
+pub use self::linux::LinuxRootFS;
 
 use crate::Error;
 

@@ -1,4 +1,5 @@
 mod posix;
+pub use self::posix::PosixMounts;
 
 use crate::Error;
 
