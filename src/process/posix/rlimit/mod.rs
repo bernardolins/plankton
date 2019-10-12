@@ -10,7 +10,7 @@ use failure::ResultExt;
 
 pub use self::resource::ResourceType;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rlimit {
     resource: ResourceType,
     soft: u64,
@@ -44,6 +44,7 @@ impl Rlimit {
     }
 }
 
+#[derive(Clone)]
 pub struct ResourceLimits {
     limits: Vec<Rlimit>,
 }
@@ -53,6 +54,13 @@ impl ResourceLimits {
         ResourceLimits {
             limits: Vec::new(),
         }
+    }
+
+    pub fn set(&self) -> Result<(), Error> {
+        for limit in &self.limits {
+            limit.set()?;
+        }
+        Ok(())
     }
 
     fn add_rlimit(&mut self, rlimit: Rlimit) {

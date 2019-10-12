@@ -2,7 +2,10 @@ use crate::Error;
 use crate::spec::PosixSpec;
 use crate::spec::FromSpec;
 use failure::ResultExt;
+use std::env;
+use std::ffi::OsStr;
 
+#[derive(Clone)]
 pub struct EnvVars {
     env_vars: Vec<(String, String)>,
 }
@@ -14,9 +17,18 @@ impl EnvVars {
         }
     }
 
+    pub fn set(&self) {
+        for (key, val) in &self.env_vars {
+            let k = OsStr::new(&key);
+            let v = OsStr::new(&val);
+            env::set_var(k, v);
+        }
+    }
+
     fn add_var(&mut self, var: (String, String)) {
         self.env_vars.push(var);
     }
+
 }
 
 impl FromSpec<PosixSpec> for EnvVars {

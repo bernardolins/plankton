@@ -2,6 +2,7 @@ use crate::Error;
 use crate::spec::PosixSpec;
 use crate::spec::FromSpec;
 use failure::ResultExt;
+use std::env;
 use std::path::PathBuf;
 
 #[cfg(target_os = "linux")]
@@ -10,6 +11,7 @@ const DEFAULT: &str = "/";
 #[cfg(not(target_os = "linux"))]
 const DEFAULT: &str = "";
 
+#[derive(Clone)]
 pub struct WorkingDir {
     dir: PathBuf,
 }
@@ -25,6 +27,12 @@ impl From<&str> for WorkingDir {
 impl WorkingDir {
     pub fn default() -> WorkingDir {
         WorkingDir::from(DEFAULT)
+    }
+
+    pub fn set(&self) -> Result<(), Error> {
+        env::set_current_dir(&self.dir)
+            .context(format!("{:?}", self.dir))?;
+        Ok(())
     }
 
     fn validate(&self) -> Result<(), Error> {

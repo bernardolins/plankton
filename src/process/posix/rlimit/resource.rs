@@ -3,7 +3,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ResourceType {
    RLIMIT_AS,
    RLIMIT_CORE,
