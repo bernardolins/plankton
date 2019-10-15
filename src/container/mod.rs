@@ -1,5 +1,6 @@
 pub mod state;
 pub mod status;
+pub mod linux;
 
 pub use self::state::State;
 pub use self::status::Status;
@@ -13,6 +14,13 @@ use std::fs;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
+
+use crate::bundle::Bundle;
+use crate::spec::Spec;
+
+pub trait ContainerTrait {
+    fn create(id: &str, bundle_dir: &str) -> Result<(), Error>;
+}
 
 const CONTAINER_DIR: &str = "/run/plankton";
 
