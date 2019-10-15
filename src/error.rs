@@ -1,12 +1,14 @@
 extern crate failure;
 
-use std::fmt;
-use std::fmt::Debug;
-use std::fmt::Display;
-
 use failure::Fail;
 use failure::Context;
 use failure::Backtrace;
+use std::fmt;
+use std::fmt::Formatter;
+use std::fmt::Debug;
+use std::fmt::Display;
+use std::io::Error as IOError;
+use std::io::ErrorKind as IOErrorKind;
 
 pub struct Error {
     inner: Context<String>,
@@ -23,7 +25,7 @@ impl Fail for Error {
 }
 
 impl Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", self.inner)?;
 
         if let Some(cause) = self.cause() {
@@ -35,7 +37,7 @@ impl Display for Error {
 }
 
 impl Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", self)
     }
 }
@@ -53,5 +55,11 @@ impl From<Context<String>> for Error {
         Error {
             inner,
         }
+    }
+}
+
+impl From<Error> for IOError {
+    fn from(error: Error) -> IOError {
+        IOError::new(IOErrorKind::Other, format!("{:?}", error))
     }
 }
