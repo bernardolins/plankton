@@ -1,10 +1,6 @@
 use crate::Error;
 use crate::spec::PosixSpec;
 use crate::spec::FromSpec;
-use failure::ResultExt;
-use nix::unistd;
-use nix::unistd::Uid;
-use nix::unistd::Gid;
 use serde::Deserialize;
 use serde::Serialize;
 

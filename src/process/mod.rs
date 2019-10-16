@@ -6,9 +6,9 @@ mod working_dir;
 pub use self::working_dir::WorkingDir;
 
 use crate::Error;
+use std::process::Child;
 
-trait Process {
-    type ProcessID;
-
-    fn spawn(&self) -> Result<Self::ProcessID, Error>;
+pub trait Process {
+    fn before_exec<F>(&mut self, func: F) where F: FnMut() -> Result<(), Error> + Send + Sync + 'static;
+    fn spawn(&mut self) -> Result<Child, Error>;
 }

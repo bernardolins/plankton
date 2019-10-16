@@ -12,8 +12,7 @@ pub struct LinuxRootFS {
 }
 
 impl RootFS for LinuxRootFS {
-    fn set(&self, bundle_dir: &str) -> Result<(), Error> {
-        let bundle_path = PathBuf::from(bundle_dir);
+    fn set(&self, bundle_path: PathBuf) -> Result<(), Error> {
         let root_path = bundle_path.join(&self.path);
         if !root_path.is_dir() {
             Err(Error::from("no such directory".to_string())).context(format!("{:?}", &root_path))?;

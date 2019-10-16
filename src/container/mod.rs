@@ -15,9 +15,6 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 
-use crate::bundle::Bundle;
-use crate::spec::Spec;
-
 pub trait ContainerTrait {
     fn create(id: &str, bundle_dir: &str) -> Result<(), Error>;
 }
