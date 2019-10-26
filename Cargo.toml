@@ -12,6 +12,7 @@ libc = "0.2.51"
 tempfile = "3"
 failure = "0.1.5"
 exitcode = "1.1.2"
+phf = { version = "0.8", features = ["macros"] }
 
 [dev-dependencies]
 rand = "0.6"
