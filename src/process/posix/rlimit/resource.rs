@@ -46,7 +46,7 @@ impl ResourceType {
         }
     }
 
-    pub fn to_libc(&self) -> libc::c_int {
+    pub fn to_libc(&self) -> libc::__rlimit_resource_t {
         match *self {
             ResourceType::RLIMIT_AS => libc::RLIMIT_AS,
             ResourceType::RLIMIT_CORE => libc::RLIMIT_CORE,
