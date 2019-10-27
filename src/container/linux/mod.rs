@@ -20,11 +20,12 @@ impl ContainerTrait for LinuxContainer {
         let bundle = Bundle::<PosixSpec>::open(bundle_dir)?;
         let spec = bundle.load_config()?;
         let path = PathBuf::from(bundle_dir);
+        let namespaces = Namespaces::from_spec(spec.clone())?;
+        namespaces.enter()?;
         let mut process = PosixProcess::from_spec(spec.clone())?;
         process.before_exec(move || {
             let rootfs = LinuxRootFS::from_spec(spec.clone())?;
             let mounts = PosixMounts::from_spec(spec.clone())?;
-            let namespaces = Namespaces::from_spec(spec.clone())?;
             rootfs.set(path.clone())?;
             mounts.mount_all()?;
             Ok(())

@@ -60,6 +60,7 @@ impl From<Context<String>> for Error {
 
 impl From<Error> for IOError {
     fn from(error: Error) -> IOError {
+        eprintln!("{}", error);
         IOError::new(IOErrorKind::Other, format!("{:?}", error))
     }
 }
