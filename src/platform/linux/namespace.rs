@@ -10,7 +10,7 @@ use std::fs::File;
 use std::os::unix::io::AsRawFd;
 use std::path::PathBuf;
 
-static NS_TYPES: phf::Map<&'static str, CloneFlags> = phf_map! {
+static NS_KINDS: phf::Map<&'static str, CloneFlags> = phf_map! {
     "pid" => CloneFlags::CLONE_NEWPID,
     "uts" => CloneFlags::CLONE_NEWUTS,
     "ipc" => CloneFlags::CLONE_NEWIPC,
@@ -28,7 +28,7 @@ impl Namespaces {
     pub fn enter(&self) -> Result<(), Error> {
         let mut flags = CloneFlags::empty();
         for (kind, path) in &self.namespaces {
-            let flag = NS_TYPES[kind.as_str()];
+            let flag = NS_KINDS[kind.as_str()];
             if path.is_none() {
                 flags.insert(flag);
             } else {
@@ -48,7 +48,7 @@ impl Namespaces {
     }
 
     fn insert(&mut self, ns_type: String, path: Option<PathBuf>) -> Result<(), Error> {
-        if !NS_TYPES.contains_key(ns_type.as_str()) {
+        if !NS_KINDS.contains_key(ns_type.as_str()) {
             Err(Error::from("invalid namespace type".to_string())).context(ns_type.clone())?;
         }
         if self.namespaces.contains_key(&ns_type) {
@@ -100,8 +100,8 @@ mod tests {
     #[test]
     fn insert_returns_ok_when_type_is_valid() {
         let mut namespaces = Namespaces::empty();
-        for t in TYPES.iter() {
-            let result = namespaces.insert(t.to_string(), None);
+        for kind in NS_KINDS.keys() {
+            let result = namespaces.insert(kind.to_string(), None);
             assert!(result.is_ok(), "expect {:?} to be ok", result);
         }
     }
