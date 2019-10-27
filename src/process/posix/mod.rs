@@ -42,8 +42,10 @@ impl Process for PosixProcess {
             Ok(())
         };
         unsafe { self.command.pre_exec(exec_fn); }
-        let child = self.command.spawn().context(format!("cannot exec container process"))?;
-        Ok(child)
+        match self.command.spawn() {
+            Ok(child) => Ok(child),
+            Err(_) => Err(Error::from("cannot create container process".to_string())),
+        }
     }
 }
 

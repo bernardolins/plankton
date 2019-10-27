@@ -6,6 +6,7 @@ extern crate libc;
 extern crate tempfile;
 extern crate failure;
 extern crate exitcode;
+extern crate phf;
 
 pub mod bundle;
 pub mod spec;

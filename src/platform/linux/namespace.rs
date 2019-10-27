@@ -2,30 +2,53 @@ use crate::Error;
 use crate::spec::PosixSpec;
 use crate::spec::FromSpec;
 use failure::ResultExt;
-use std::path::PathBuf;
+use nix::sched;
+use nix::sched::CloneFlags;
+use phf::phf_map;
 use std::collections::HashMap;
+use std::fs::File;
+use std::os::unix::io::AsRawFd;
+use std::path::PathBuf;
 
-static TYPES: [&str; 7]  = [
-    "pid",
-    "uts",
-    "ipc",
-    "user",
-    "mount",
-    "cgroup",
-    "network",
-];
+static NS_TYPES: phf::Map<&'static str, CloneFlags> = phf_map! {
+    "pid" => CloneFlags::CLONE_NEWPID,
+    "uts" => CloneFlags::CLONE_NEWUTS,
+    "ipc" => CloneFlags::CLONE_NEWIPC,
+    "user" => CloneFlags::CLONE_NEWUSER,
+    "mount" => CloneFlags::CLONE_NEWNS,
+    "cgroup" => CloneFlags::CLONE_NEWCGROUP,
+    "network" => CloneFlags::CLONE_NEWNET,
+};
 
 pub struct Namespaces {
     namespaces: HashMap<String, Option<PathBuf>>,
 }
 
 impl Namespaces {
+    pub fn enter(&self) -> Result<(), Error> {
+        let mut flags = CloneFlags::empty();
+        for (kind, path) in &self.namespaces {
+            let flag = NS_TYPES[kind.as_str()];
+            if path.is_none() {
+                flags.insert(flag);
+            } else {
+                let file = File::open(path.as_ref().unwrap()).context(format!("{:?}", &path))?;
+                let fd = file.as_raw_fd();
+                sched::setns(fd, flag).context(format!("{:?}: {:?}", &kind, &path))?;
+            }
+        }
+        if !flags.is_empty() {
+            sched::unshare(flags).context(format!("{:?}", flags))?;
+        }
+        Ok(())
+    }
+
     fn empty() -> Namespaces {
         Namespaces{ namespaces: HashMap::new() }
     }
 
     fn insert(&mut self, ns_type: String, path: Option<PathBuf>) -> Result<(), Error> {
-        if !TYPES.contains(&ns_type.as_str()) {
+        if !NS_TYPES.contains_key(ns_type.as_str()) {
             Err(Error::from("invalid namespace type".to_string())).context(ns_type.clone())?;
         }
         if self.namespaces.contains_key(&ns_type) {
