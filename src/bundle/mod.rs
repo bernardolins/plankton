@@ -20,6 +20,10 @@ pub struct Bundle<S: Spec> {
 }
 
 impl<S: Spec> Bundle<S> {
+    pub fn path(&self) -> PathBuf {
+        self.path.clone()
+    }
+
     pub fn open(dir: &str) -> Result<Bundle<S>, Error> {
         let bundle_path = PathBuf::from(dir);
         let path = bundle_path.canonicalize().context(format!("{:?}", bundle_path))?;
@@ -169,5 +173,13 @@ mod tests {
         let result = bundle.load_config();
         assert!(result.is_ok(), "expected {:?} to be err", &result);
         assert_eq!(result.ok().unwrap(), FakeSpec::default());
+    }
+
+    #[test]
+    fn bundle_path_returns_the_path() {
+        let tempdir = tempdir().unwrap();
+        let dir = tempdir.path().to_str().unwrap();
+        let bundle = Bundle::<FakeSpec>::open(dir).unwrap();
+        assert_eq!(bundle.path(), PathBuf::from(dir));
     }
 }
