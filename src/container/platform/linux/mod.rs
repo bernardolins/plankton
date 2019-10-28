@@ -1,7 +1,10 @@
 use crate::Error;
 use crate::bundle::Bundle;
-use crate::container::ContainerRunner;
+use crate::container::ContainerInfo;
 use crate::container::ContainerBuilder;
+use crate::container::ContainerRunner;
+use crate::container::State;
+use crate::container::Status;
 use crate::spec::FromSpec;
 use crate::spec::PosixSpec;
 use crate::process::Process;
@@ -12,7 +15,13 @@ use crate::rootfs::RootFS;
 use crate::rootfs::LinuxRootFS;
 use crate::linux::Namespaces;
 use failure::ResultExt;
+use std::fs;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::PathBuf;
+
+
+const SAVED_STATE_DIR: &str = "/run/plankton";
 
 pub struct Linux {
     id: String,
@@ -51,5 +60,27 @@ impl ContainerBuilder for Linux {
 
         let bundle_path = bundle.path();
         Ok(Linux { id, bundle_path, namespaces, entrypoint })
+    }
+}
+
+impl ContainerInfo for Linux {
+    fn exists(id: &str) -> bool {
+        let path = PathBuf::from(format!("{}/{}.json", SAVED_STATE_DIR, id));
+        path.is_file()
+    }
+
+    fn current_state(id: &str) -> Result<State, Error> {
+        let path = PathBuf::from(format!("{}/{}.json", SAVED_STATE_DIR, id));
+        let file = File::open(path).context("cannot open container state file".to_string())?;
+        let reader = BufReader::new(file);
+        let state: State = serde_json::from_reader(reader).context("error loading container state".to_string())?;
+        Ok(state)
+    }
+
+    fn update_state(id: &str, new_state: State) -> Result<(), Error> {
+        let path = PathBuf::from(format!("{}/{}.json", SAVED_STATE_DIR, id));
+        let json = serde_json::to_string(&new_state).context("cannot save container state".to_string())?;
+        fs::write(&path, json).context(format!("cannot save container state to file {:?}", &path))?;
+        Ok(())
     }
 }

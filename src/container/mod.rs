@@ -31,7 +31,7 @@ pub trait ContainerBuilder {
 pub trait ContainerInfo {
     fn exists(id: &str) -> bool;
     fn current_state(id: &str) -> Result<State, Error>;
-    fn current_status(id: &str) -> Result<Status, Error>;
+    fn update_state(id: &str, new_state: State) -> Result<(), Error>;
 }
 
 pub struct ContainerOps<P: ContainerBuilder + ContainerRunner + ContainerInfo> {

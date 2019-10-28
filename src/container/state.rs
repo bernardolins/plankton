@@ -1,8 +1,9 @@
 use crate::Error;
 use serde::Serialize;
+use serde::Deserialize;
 use failure::ResultExt;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct State {
     pub bundle: String,
     pub id: String,
