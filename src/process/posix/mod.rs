@@ -7,7 +7,6 @@ use crate::spec::FromSpec;
 use crate::process::Process;
 use crate::process::EnvVars;
 use crate::process::WorkingDir;
-use failure::ResultExt;
 use self::rlimit::ResourceLimits;
 use self::user::PosixUser;
 use std::process::Command;
