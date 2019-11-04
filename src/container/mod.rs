@@ -5,51 +5,14 @@ pub use self::state::State;
 pub use self::status::Status;
 
 use crate::Error;
-use crate::bundle::Bundle;
-use crate::spec::Spec;
 use crate::libcontainer::Environment;
 use failure::ResultExt;
 use serde::Serialize;
 use serde::Deserialize;
 use std::fs;
 use std::fs::File;
-use std::marker::PhantomData;
 use std::io::BufReader;
 use std::path::PathBuf;
-
-pub trait ContainerRunner {
-    fn run_entrypoint(&mut self) -> Result<(), Error>;
-}
-
-pub trait ContainerBuilder {
-    type Spec: Spec;
-
-    fn from_bundle(id: &str, bundle: Bundle<Self::Spec>) -> Result<Self, Error> where Self: Sized;
-}
-
-pub trait ContainerInfo {
-    fn exists(id: &str) -> bool;
-    fn current_state(id: &str) -> Result<State, Error>;
-    fn update_state(id: &str, new_state: State) -> Result<(), Error>;
-}
-
-pub struct ContainerOps<P: ContainerBuilder + ContainerRunner + ContainerInfo> {
-   platform: PhantomData<P>,
-}
-
-impl <P: ContainerBuilder + ContainerRunner + ContainerInfo> ContainerOps<P> {
-    pub fn run(_container_id: &str, _bundle_dir: &str) -> Result<(), Error> {
-        Ok(())
-    }
-
-    pub fn start(_container_id: &str) -> Result<(), Error> {
-        Ok(())
-    }
-
-    pub fn query(_container_id: &str) -> Result<(), Error> {
-        Ok(())
-    }
-}
 
 const CONTAINER_DIR: &str = "/run/plankton";
 
