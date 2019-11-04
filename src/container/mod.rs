@@ -1,6 +1,5 @@
 pub mod state;
 pub mod status;
-pub mod platform;
 
 pub use self::state::State;
 pub use self::status::Status;
