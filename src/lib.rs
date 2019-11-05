@@ -14,4 +14,7 @@ pub mod error;
 pub mod filesystem;
 pub mod libcontainer;
 
+pub mod spec;
+pub mod config;
+
 pub use self::error::Error;
