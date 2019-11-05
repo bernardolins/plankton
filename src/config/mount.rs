@@ -3,7 +3,7 @@ use serde::Serialize;
 use serde::Deserialize;
 use std::path::PathBuf;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Mount {
     destination: PathBuf,
     source: Option<String>,

@@ -4,7 +4,7 @@ use serde::Serialize;
 use serde::Deserialize;
 use std::path::PathBuf;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Process {
     terminal: Option<bool>,
     console_size: Option<ConsoleSize>,
@@ -57,7 +57,7 @@ impl ProcessSpec for Process {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ConsoleSize {
     height: u32,
     width: u32,
