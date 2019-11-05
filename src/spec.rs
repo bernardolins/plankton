@@ -5,12 +5,19 @@ pub trait Spec {
     type Root: RootSpec;
     type Process: ProcessSpec;
 
+    #[cfg(target_os = "linux")]
+    type Linux: LinuxSpec;
+
     fn get_root(&self) -> Option<&Self::Root>;
     fn get_root_clone(&self) -> Option<Self::Root>;
     fn get_mounts(&self) -> Option<&Vec<Self::Mount>>;
     fn get_mounts_clone(&self) -> Option<Vec<Self::Mount>>;
     fn get_process(&self) -> Option<&Self::Process>;
     fn get_process_clone(&self) -> Option<Self::Process>;
+
+    #[cfg(target_os = "linux")]
+    fn get_linux(&self) -> Option<&Self::Linux>;
+    fn get_linux_clone(&self) -> Option<Self::Linux>;
 }
 
 pub trait RootSpec {
@@ -51,4 +58,19 @@ pub trait ProcessSpec {
 pub trait ConsoleSizeSpec {
     fn get_height(&self) -> u32;
     fn get_width(&self) -> u32;
+}
+
+pub trait LinuxSpec {
+    type Namespace: NamespaceSpec;
+
+    fn get_namespaces(&self) -> Option<&Vec<Self::Namespace>>;
+    fn get_namespaces_clone(&self) -> Option<Vec<Self::Namespace>>;
+}
+
+pub trait NamespaceSpec {
+    fn get_type(&self) -> &String;
+    fn get_type_clone(&self) -> String;
+
+    fn get_path(&self) -> Option<&PathBuf>;
+    fn get_path_clone(&self) -> Option<PathBuf>;
 }

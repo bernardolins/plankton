@@ -1,10 +1,12 @@
 mod mount;
 mod process;
 mod root;
+mod platform;
 
 pub use self::mount::Mount;
 pub use self::process::Process;
 pub use self::root::Root;
+pub use self::platform::Linux;
 
 use crate::Error;
 use crate::spec::Spec;
@@ -18,6 +20,9 @@ struct Config {
     mounts: Option<Vec<Mount>>,
     process: Option<Process>,
     root: Option<Root>,
+
+    #[cfg(target_os = "linux")]
+    linux: Option<Linux>
 }
 
 impl Config {
@@ -33,6 +38,9 @@ impl Spec for Config {
     type Mount = Mount;
     type Root = Root;
     type Process = Process;
+
+    #[cfg(target_os = "linux")]
+    type Linux = Linux;
 
     fn get_root(&self) -> Option<&Self::Root> {
         self.root.as_ref()
@@ -56,6 +64,14 @@ impl Spec for Config {
 
     fn get_process_clone(&self) -> Option<Self::Process> {
         self.get_process().cloned()
+    }
+
+    fn get_linux(&self) -> Option<&Self::Linux> {
+        self.linux.as_ref()
+    }
+
+    fn get_linux_clone(&self) -> Option<Self::Linux> {
+        self.get_linux().cloned()
     }
 }
 
@@ -112,6 +128,22 @@ mod tests {
     }
 
     #[test]
+    fn get_linux_some() {
+        let input = r#"{"linux": {"namespaces": []}}"#;
+        let config = Config::read_json(input.as_bytes()).unwrap();
+        let result = config.get_linux();
+        assert!(result.is_some(), "expect {:?} to be some", &result);
+    }
+
+    #[test]
+    fn get_linux_clone_some() {
+        let input = r#"{"linux": {"namespaces": []}}"#;
+        let config = Config::read_json(input.as_bytes()).unwrap();
+        let result = config.get_linux_clone();
+        assert!(result.is_some(), "expect {:?} to be some", &result);
+    }
+
+    #[test]
     fn get_root_none() {
         let input = r#"{}"#;
         let config = Config::read_json(input.as_bytes()).unwrap();
@@ -156,6 +188,22 @@ mod tests {
         let input = r#"{}"#;
         let config = Config::read_json(input.as_bytes()).unwrap();
         let result = config.get_process();
+        assert!(result.is_none(), "expect {:?} to be some", &result);
+    }
+
+    #[test]
+    fn get_linux_none() {
+        let input = r#"{}"#;
+        let config = Config::read_json(input.as_bytes()).unwrap();
+        let result = config.get_linux();
+        assert!(result.is_none(), "expect {:?} to be some", &result);
+    }
+
+    #[test]
+    fn get_linux_clone_none() {
+        let input = r#"{}"#;
+        let config = Config::read_json(input.as_bytes()).unwrap();
+        let result = config.get_linux();
         assert!(result.is_none(), "expect {:?} to be some", &result);
     }
 
