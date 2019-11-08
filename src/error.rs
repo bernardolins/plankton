@@ -55,3 +55,22 @@ impl From<Context<String>> for Error {
         }
     }
 }
+
+
+impl From<&'static str> for Error {
+    fn from(msg: &'static str) -> Error {
+        let msg = String::from(msg);
+        Error {
+            inner: Context::new(msg.into()),
+        }
+    }
+}
+
+impl From<Context<&'static str>> for Error {
+    fn from(inner: Context<&'static str>) -> Error {
+        let inner = Context::new(inner.get_context().to_string());
+        Error {
+            inner,
+        }
+    }
+}
