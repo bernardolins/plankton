@@ -17,5 +17,6 @@ pub mod libcontainer;
 pub mod spec;
 pub mod config;
 pub mod namespace;
+pub mod linux;
 
 pub use self::error::Error;
