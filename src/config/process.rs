@@ -59,16 +59,16 @@ impl ProcessSpec for Process {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ConsoleSize {
-    height: u32,
-    width: u32,
+    height: u16,
+    width: u16,
 }
 
 impl ConsoleSizeSpec for ConsoleSize {
-    fn get_height(&self) -> u32 {
+    fn get_height(&self) -> u16 {
         self.height
     }
 
-    fn get_width(&self) -> u32 {
+    fn get_width(&self) -> u16 {
         self.width
     }
 }

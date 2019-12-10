@@ -56,8 +56,8 @@ pub trait ProcessSpec {
 }
 
 pub trait ConsoleSizeSpec {
-    fn get_height(&self) -> u32;
-    fn get_width(&self) -> u32;
+    fn get_height(&self) -> u16;
+    fn get_width(&self) -> u16;
 }
 
 pub trait LinuxSpec {
