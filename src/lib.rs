@@ -14,6 +14,7 @@ pub mod error;
 pub mod filesystem;
 pub mod libcontainer;
 
+pub mod cont;
 pub mod spec;
 pub mod config;
 pub mod namespace;
