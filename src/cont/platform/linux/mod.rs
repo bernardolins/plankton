@@ -5,6 +5,7 @@ use crate::namespace::NamespaceSet;
 use crate::process::ContainerProcess;
 use crate::spec::LinuxSpec;
 use crate::spec::ProcessSpec;
+use crate::process::ProcessCreate;
 
 #[derive(Debug, PartialEq)]
 pub struct Container {

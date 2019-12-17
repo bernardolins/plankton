@@ -1,4 +1,5 @@
 use crate::Error;
+use crate::process::ProcessCreate;
 use crate::spec::ProcessSpec;
 use spec::ConsoleSizeSpec;
 use failure::ResultExt;
@@ -17,9 +18,8 @@ pub struct Process {
     envs: Vec<(OsString, OsString)>,
 }
 
-
-impl Process{
-    pub fn from_spec<P: ProcessSpec>(spec: &P) -> Result<Process, Error> {
+impl ProcessCreate for Process {
+    fn from_spec<P: ProcessSpec>(spec: &P) -> Result<Process, Error> {
         let mut process = Process {
             program: None,
             args: None,
@@ -36,7 +36,9 @@ impl Process{
         process.envs(spec.get_env_clone())?;
         Ok(process)
     }
+}
 
+impl Process {
     fn args(&mut self, args: Option<Vec<String>>) -> Result<(), Error> {
         if args.is_some() {
             let args = args.unwrap();

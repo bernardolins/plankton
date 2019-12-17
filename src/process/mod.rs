@@ -1,20 +1,14 @@
-#[path = "linux.rs"]
-#[cfg(unix)]
-mod imp;
+mod platform;
 
 use crate::Error;
 use crate::spec::ProcessSpec;
 
-#[derive(Debug, PartialEq)]
-pub struct ContainerProcess {
-    inner: imp::Process,
+pub trait ProcessCreate {
+    fn from_spec<P: ProcessSpec>(spec: &P) -> Result<Self, Error> where Self: Sized;
 }
 
-impl ContainerProcess {
-    pub fn from_spec<P: ProcessSpec>(proc_spec: &P) -> Result<ContainerProcess, Error> {
-        Ok(ContainerProcess {
-            inner: imp::Process::from_spec(proc_spec)?,
-        })
-    }
-}
+#[cfg(target_os = "linux")]
+pub use self::platform::linux::Process as ContainerProcess;
 
+#[cfg(not(target_os = "linux"))]
+pub use self::platform::Process as ContainerProcess;
