@@ -4,7 +4,6 @@ mod imp;
 
 use crate::Error;
 use crate::spec::ProcessSpec;
-use std::path::PathBuf;
 
 #[derive(Debug, PartialEq)]
 pub struct ContainerProcess {

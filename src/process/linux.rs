@@ -5,9 +5,6 @@ use failure::ResultExt;
 use std::ffi::CString;
 use std::ffi::OsString;
 use std::path::PathBuf;
-use std::process::Command;
-use std::os::unix::process::CommandExt;
-use super::ContainerProcess;
 
 #[derive(Debug, PartialEq)]
 pub struct Process {
