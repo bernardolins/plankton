@@ -6,14 +6,18 @@ use std::path::PathBuf;
 use std::convert::TryFrom;
 use super::Namespace;
 
-#[derive(Debug)]
-struct NamespaceSet {
+#[derive(Debug, PartialEq, Clone)]
+pub struct NamespaceSet {
     to_create: Vec<Namespace>,
     to_enter: HashMap<Namespace, PathBuf>,
 }
 
 impl NamespaceSet {
-    pub fn from_spec<N: NamespaceSpec>(ns_list: &Vec<N>) -> Result<NamespaceSet, Error> {
+    pub fn from_spec<N: NamespaceSpec>(ns_spec: Option<&Vec<N>>) -> Result<NamespaceSet, Error> {
+        if ns_spec.is_none() {
+            return Ok(NamespaceSet{to_create: Vec::new(), to_enter: HashMap::new()});
+        }
+        let ns_list = ns_spec.unwrap();
         let mut to_create: Vec<Namespace> = Vec::new();
         let mut to_enter: HashMap<Namespace, PathBuf> = HashMap::new();
         for spec_ns in ns_list.iter() {
@@ -56,11 +60,11 @@ mod tests {
 
     #[test]
     fn from_spec_with_none_paths() {
-        let namespaces = vec![
+        let namespaces = Some(vec![
             FakeNamespace{fake_type: "cgroup".to_string(), fake_path: None},
             FakeNamespace{fake_type: "ipc".to_string(), fake_path: None},
-        ];
-        let result = NamespaceSet::from_spec(&namespaces);
+        ]);
+        let result = NamespaceSet::from_spec(namespaces.as_ref());
         let expected_to_create = vec![Namespace::CGROUP, Namespace::IPC];
         let expected_to_enter = HashMap::<Namespace, PathBuf>::new();
         assert!(result.is_ok(), "expected {:?} to be err", result);
@@ -71,12 +75,12 @@ mod tests {
 
     #[test]
     fn from_spec_with_some_paths() {
-        let namespaces = vec![
+        let namespaces = Some(vec![
             FakeNamespace{fake_type: "pid".to_string(), fake_path: None},
             FakeNamespace{fake_type: "user".to_string(), fake_path: Some(PathBuf::from("/proc/1234/ns/user"))},
             FakeNamespace{fake_type: "mount".to_string(), fake_path: None},
-        ];
-        let result = NamespaceSet::from_spec(&namespaces);
+        ]);
+        let result = NamespaceSet::from_spec(namespaces.as_ref());
         let expected_to_create = vec![
             Namespace::PID,
             Namespace::MOUNT,
@@ -92,41 +96,41 @@ mod tests {
 
     #[test]
     fn from_spec_with_invalid_type() {
-        let namespaces = vec![
+        let namespaces = Some(vec![
             FakeNamespace{fake_type: "invalid".to_string(), fake_path: None},
             FakeNamespace{fake_type: "user".to_string(), fake_path: Some(PathBuf::from("/proc/1234/ns/user"))},
             FakeNamespace{fake_type: "mount".to_string(), fake_path: None},
-        ];
-        let result = NamespaceSet::from_spec(&namespaces);
+        ]);
+        let result = NamespaceSet::from_spec(namespaces.as_ref());
         assert!(result.is_err(), "expected {:?} to be err", result);
     }
 
     #[test]
     fn from_spec_with_duplicated_types() {
-        let namespaces = vec![
+        let namespaces = Some(vec![
             FakeNamespace{fake_type: "pid".to_string(), fake_path: None},
             FakeNamespace{fake_type: "pid".to_string(), fake_path: Some(PathBuf::from("/proc/1234/ns/pid"))},
-        ];
-        let result = NamespaceSet::from_spec(&namespaces);
+        ]);
+        let result = NamespaceSet::from_spec(namespaces.as_ref());
         assert!(result.is_err(), "expected {:?} to be err", result);
     }
 
     #[test]
     fn from_spec_with_duplicated_types_and_no_path() {
-        let namespaces = vec![
+        let namespaces = Some(vec![
             FakeNamespace{fake_type: "pid".to_string(), fake_path: None},
             FakeNamespace{fake_type: "pid".to_string(), fake_path: None},
-        ];
-        let result = NamespaceSet::from_spec(&namespaces);
+        ]);
+        let result = NamespaceSet::from_spec(namespaces.as_ref());
         assert!(result.is_err(), "expected {:?} to be err", result);
     }
 
     #[test]
     fn contains() {
-        let namespaces = vec![
+        let namespaces = Some(vec![
             FakeNamespace{fake_type: "pid".to_string(), fake_path: None},
-        ];
-        let set = NamespaceSet::from_spec(&namespaces).unwrap();
+        ]);
+        let set = NamespaceSet::from_spec(namespaces.as_ref()).unwrap();
         assert!(set.contains(&Namespace::PID));
         assert!(!set.contains(&Namespace::UTS));
     }

@@ -1,4 +1,5 @@
-mod set;
+pub mod set;
+pub use self::set::NamespaceSet;
 
 use crate::Error;
 use failure::ResultExt;
