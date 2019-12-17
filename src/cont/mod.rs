@@ -1,19 +1,14 @@
-#[path = "linux.rs"]
-#[cfg(unix)]
-mod imp;
+mod platform;
 
 use crate::Error;
 use crate::spec::Spec;
 
-#[derive(Debug, PartialEq)]
-pub struct Container {
-    inner: imp::Container,
+pub trait ContainerCreate {
+    fn from_spec<S: Spec>(spec: S) -> Result<Self, Error> where Self: Sized;
 }
 
-impl Container {
-    pub fn from_spec<S: Spec>(spec: S) -> Result<Container, Error> {
-        Ok(Container{
-            inner: imp::Container::from_spec(spec)?,
-        })
-    }
-}
+#[cfg(target_os = "linux")]
+pub use self::platform::linux::Container;
+
+#[cfg(not(target_os = "linux"))]
+pub use self::platform::Container;
