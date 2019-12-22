@@ -13,9 +13,16 @@ pub struct NamespaceSet {
 }
 
 impl NamespaceSet {
+    pub fn empty() -> NamespaceSet {
+        NamespaceSet{
+            to_create: Vec::new(),
+            to_enter: HashMap::new()
+        }
+    }
+
     pub fn from_spec<N: NamespaceSpec>(ns_spec: Option<&Vec<N>>) -> Result<NamespaceSet, Error> {
         if ns_spec.is_none() {
-            return Ok(NamespaceSet{to_create: Vec::new(), to_enter: HashMap::new()});
+            return Ok(NamespaceSet::empty());
         }
         let ns_list = ns_spec.unwrap();
         let mut to_create: Vec<Namespace> = Vec::new();
@@ -56,6 +63,13 @@ mod tests {
         fn get_type_clone(&self) -> String { self.fake_type.clone() }
         fn get_path(&self) -> Option<&PathBuf> { self.fake_path.as_ref() }
         fn get_path_clone(&self) -> Option<PathBuf> { self.get_path().cloned() }
+    }
+
+    #[test]
+    fn empty() {
+        let empty_set = NamespaceSet::empty();
+        assert_eq!(empty_set.to_create.len(), 0, "expected to_create to be empty, found {:?}", &empty_set.to_create);
+        assert_eq!(empty_set.to_enter.len(), 0, "expected to_enter to be empty, found {:?}", &empty_set.to_enter);
     }
 
     #[test]
