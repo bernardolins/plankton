@@ -1,11 +1,17 @@
 use crate::Error;
+use crate::namespace::NamespaceSet;
 use crate::process::ProcessCreate;
 use crate::spec::ProcessSpec;
-use spec::ConsoleSizeSpec;
+use crate::spec::LinuxSpec;
+use crate::spec::ConsoleSizeSpec;
 use failure::ResultExt;
 use std::ffi::CString;
 use std::ffi::OsString;
 use std::path::PathBuf;
+
+trait LinuxProcess {
+    fn namespaces<L: LinuxSpec>(&mut self, spec: &L) -> Result<(), Error>;
+}
 
 #[derive(Debug, PartialEq)]
 pub struct Process {
@@ -16,6 +22,15 @@ pub struct Process {
     console_width: Option<u16>,
     cwd: PathBuf,
     envs: Vec<(OsString, OsString)>,
+    namespaces: NamespaceSet,
+}
+
+impl LinuxProcess for Process {
+    fn namespaces<L: LinuxSpec>(&mut self, spec: &L) -> Result<(), Error> {
+        let ns = spec.get_namespaces();
+        self.namespaces = NamespaceSet::from_spec(ns)?;
+        Ok(())
+    }
 }
 
 impl ProcessCreate for Process {
@@ -28,6 +43,7 @@ impl ProcessCreate for Process {
             console_width: None,
             cwd: PathBuf::from("/"),
             envs: Vec::new(),
+            namespaces: NamespaceSet::empty(),
         };
         process.args(spec.get_args_clone())?;
         process.attach_terminal(spec.get_terminal());
