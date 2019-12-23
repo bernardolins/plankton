@@ -9,8 +9,8 @@ use std::ffi::CString;
 use std::ffi::OsString;
 use std::path::PathBuf;
 
-trait LinuxProcess {
-    fn namespaces<L: LinuxSpec>(&mut self, spec: &L) -> Result<(), Error>;
+pub trait LinuxProcess {
+    fn namespaces<L: LinuxSpec>(&mut self, spec: Option<&L>) -> Result<(), Error>;
 }
 
 #[derive(Debug, PartialEq)]
@@ -26,9 +26,11 @@ pub struct Process {
 }
 
 impl LinuxProcess for Process {
-    fn namespaces<L: LinuxSpec>(&mut self, spec: &L) -> Result<(), Error> {
-        let ns = spec.get_namespaces();
-        self.namespaces = NamespaceSet::from_spec(ns)?;
+    fn namespaces<L: LinuxSpec>(&mut self, spec: Option<&L>) -> Result<(), Error> {
+        if spec.is_some() {
+            let ns = spec.unwrap().get_namespaces();
+            self.namespaces = NamespaceSet::from_spec(ns)?;
+        }
         Ok(())
     }
 }

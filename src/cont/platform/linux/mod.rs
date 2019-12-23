@@ -1,36 +1,36 @@
-pub mod create;
-
 use crate::Error;
 use crate::namespace::NamespaceSet;
 use crate::process::ContainerProcess;
+use crate::process::ProcessCreate;
+use crate::process::platform::linux::LinuxProcess;
+use crate::spec::Spec;
 use crate::spec::LinuxSpec;
 use crate::spec::ProcessSpec;
-use crate::process::ProcessCreate;
+use super::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Container {
     init_process: Option<ContainerProcess>,
-    namespaces: Option<NamespaceSet>,
 }
 
-impl Container {
-    fn init_process<P: ProcessSpec>(&mut self, spec: Option<&P>) -> Result<(), Error> {
-        if spec.is_none() {
-            self.init_process = None;
-            return Ok(())
-        }
-        let ip = ContainerProcess::from_spec(spec.unwrap())?;
-        self.init_process = Some(ip);
-        Ok(())
-    }
+impl ContainerCreate for Container {
+    fn from_spec<S: Spec>(spec: S) -> Result<Self, Error> {
+        let mut container = Container{
+            init_process: None,
+        };
 
-    fn linux<L: LinuxSpec>(&mut self, spec: Option<&L>) -> Result<(), Error> {
-        if spec.is_none() {
-            self.namespaces = None;
-            return Ok(())
+        let proc_spec = spec.get_process();
+        let linux_spec = spec.get_linux();
+
+        match proc_spec {
+            Some(proc_spec) => {
+                let mut ip = ContainerProcess::from_spec(proc_spec)?;
+                ip.namespaces(linux_spec)?;
+                container.init_process = Some(ip);
+            },
+            None => container.init_process = None,
         }
-        let linux_spec = spec.unwrap();
-        self.namespaces = Some(NamespaceSet::from_spec(linux_spec.get_namespaces())?);
-        Ok(())
+
+        Ok(container)
     }
 }
